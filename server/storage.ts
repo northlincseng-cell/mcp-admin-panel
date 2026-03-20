@@ -59,16 +59,22 @@ export interface IStorage {
   createDeal(data: InsertDeal): Promise<Deal>;
   updateDeal(id: number, data: Partial<InsertDeal>): Promise<Deal | undefined>;
   deleteDeal(id: number): Promise<boolean>;
+  computeDealEffectivePrice(deal: { discountType: string | null; discountValue: number | null; volumeTierId: number | null }): Promise<number>;
+  listFlaggedDeals(): Promise<Deal[]>;
+  acknowledgeDealCascade(id: number, userName: string): Promise<Deal | undefined>;
 
   // Volume Tiers
   listVolumeTiers(): Promise<VolumeTier[]>;
   getVolumeTier(id: number): Promise<VolumeTier | undefined>;
   updateVolumeTier(id: number, data: Partial<InsertVolumeTier>): Promise<VolumeTier | undefined>;
+  createVolumeTier(data: InsertVolumeTier): Promise<VolumeTier>;
 
   // GS Pricing
   listGsPricing(): Promise<GsPricing[]>;
   getGsPricing(id: number): Promise<GsPricing | undefined>;
+  getBasePrice(): Promise<GsPricing | undefined>;
   updateGsPricing(id: number, data: Partial<InsertGsPricing>): Promise<GsPricing | undefined>;
+  updateBasePriceAndCascade(id: number, newPriceNumeric: number, userName: string): Promise<{ updatedPricing: GsPricing; cascadedTiers: number; flaggedDeals: number }>;
 
   // Equivalence
   listEquivalence(): Promise<Equivalence[]>;

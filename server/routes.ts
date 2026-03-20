@@ -413,6 +413,28 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/deals/flagged", async (_req: Request, res: Response) => {
+    try {
+      const deals = await storage.listFlaggedDeals();
+      res.json(deals);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.post("/api/deals/:id/acknowledge", async (req: Request, res: Response) => {
+    try {
+      const id = parseId(req);
+      if (!id) return res.status(400).json({ error: "invalid id" });
+      const deal = await storage.acknowledgeDealCascade(id, req.user?.username || "system");
+      if (!deal) return res.status(404).json({ error: "deal not found" });
+      await storage.logChange("acknowledged", "deals", `acknowledged cascade flag on deal: ${deal.name}`, req.user?.username || "system");
+      res.json(deal);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   app.post("/api/deals", async (req: Request, res: Response) => {
     try {
       const body = sanitize(req.body);
@@ -498,6 +520,16 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/pricing/base", async (_req: Request, res: Response) => {
+    try {
+      const base = await storage.getBasePrice();
+      if (!base) return res.status(404).json({ error: "no base price configured" });
+      res.json(base);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   app.put("/api/pricing/:id", async (req: Request, res: Response) => {
     try {
       const id = parseId(req);
@@ -510,6 +542,24 @@ export async function registerRoutes(
       res.json(pricing);
     } catch (e: any) {
       if (e instanceof z.ZodError) return res.status(400).json({ error: "validation failed", details: e.errors });
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // CASCADE: Update base price and recalculate all downstream prices
+  app.post("/api/pricing/cascade", async (req: Request, res: Response) => {
+    try {
+      const { basePriceId, newPriceNumeric } = req.body as { basePriceId: number; newPriceNumeric: number };
+      if (!basePriceId || newPriceNumeric === undefined || newPriceNumeric <= 0) {
+        return res.status(400).json({ error: "basePriceId and newPriceNumeric (> 0) are required" });
+      }
+      const result = await storage.updateBasePriceAndCascade(
+        basePriceId,
+        newPriceNumeric,
+        req.user?.username || "system"
+      );
+      res.json(result);
+    } catch (e: any) {
       res.status(500).json({ error: e.message });
     }
   });

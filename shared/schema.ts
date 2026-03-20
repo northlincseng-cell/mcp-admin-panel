@@ -112,11 +112,19 @@ export const deals = pgTable("deals", {
   country: text("country").default(""),
   flag: text("flag").default(""),
   volume: text("volume").default(""),
-  price: text("price").default(""),
+  price: text("price").default(""),                              // legacy display price (kept for backward compat)
   level: integer("level").default(1),
   score: integer("score").default(0),
   status: text("status").notNull().default("pending"),
   type: text("type").default("corporate"),
+  // ─── Cascade pricing fields ───
+  volumeTierId: integer("volume_tier_id"),                       // which volume tier this deal is linked to
+  discountType: text("discount_type").default("percentage"),     // percentage | fixed_override
+  discountValue: real("discount_value").default(0),              // % off tier price, OR the fixed override price
+  effectivePrice: real("effective_price").default(0),            // computed: tier price after discount/override
+  cascadeFlagged: boolean("cascade_flagged").default(false),     // flagged for review after base price change
+  cascadeFlaggedAt: timestamp("cascade_flagged_at"),             // when it was flagged
+  // ─── end cascade fields ───
   notes: text("notes").default(""),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -132,6 +140,8 @@ export const volumeTiers = pgTable("volume_tiers", {
   name: text("name").notNull(),
   threshold: text("threshold").default(""),
   pricePerGs: text("price_per_gs").default(""),
+  priceNumeric: real("price_numeric").default(0),               // actual numeric price per GS in £
+  basePriceAtSet: real("base_price_at_set").default(0),         // what the base price was when admin last set this tier's price
   discount: text("discount").default(""),
   description: text("description").default(""),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -141,9 +151,11 @@ export const gsPricing = pgTable("gs_pricing", {
   id: serial("id").primaryKey(),
   tierName: text("tier_name").notNull(),
   pricePerGs: text("price_per_gs").default(""),
+  priceNumeric: real("price_numeric").default(0),               // numeric price per GS in £ — source of truth
   volumeRange: text("volume_range").default(""),
   discountPct: text("discount_pct").default(""),
   description: text("description").default(""),
+  isBasePrice: boolean("is_base_price").default(false),         // marks the tier that is the base price (single source of truth)
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 

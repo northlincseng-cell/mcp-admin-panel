@@ -297,13 +297,34 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createDeal(data: InsertDeal): Promise<Deal> {
-    const [row] = await getDb().insert(deals).values(data).returning();
+    // Compute effective price before inserting
+    const effectivePrice = await this.computeDealEffectivePrice({
+      discountType: data.discountType ?? "percentage",
+      discountValue: data.discountValue ?? 0,
+      volumeTierId: data.volumeTierId ?? null,
+    });
+    const [row] = await getDb().insert(deals).values({
+      ...data,
+      effectivePrice,
+    }).returning();
     return row;
   }
 
   async updateDeal(id: number, data: Partial<InsertDeal>): Promise<Deal | undefined> {
+    // If pricing fields changed, recompute effective price
+    let effectivePrice: number | undefined;
+    if (data.discountType !== undefined || data.discountValue !== undefined || data.volumeTierId !== undefined) {
+      const existing = await this.getDeal(id);
+      if (existing) {
+        effectivePrice = await this.computeDealEffectivePrice({
+          discountType: data.discountType ?? existing.discountType,
+          discountValue: data.discountValue ?? existing.discountValue,
+          volumeTierId: data.volumeTierId ?? existing.volumeTierId,
+        });
+      }
+    }
     const [row] = await getDb().update(deals)
-      .set({ ...data, updatedAt: new Date() })
+      .set({ ...data, ...(effectivePrice !== undefined ? { effectivePrice } : {}), updatedAt: new Date() })
       .where(eq(deals.id, id))
       .returning();
     return row;
@@ -312,6 +333,53 @@ export class DatabaseStorage implements IStorage {
   async deleteDeal(id: number): Promise<boolean> {
     const result = await getDb().delete(deals).where(eq(deals.id, id)).returning();
     return result.length > 0;
+  }
+
+  /** Compute the effective price for a deal based on discount type and linked tier */
+  async computeDealEffectivePrice(deal: {
+    discountType: string | null;
+    discountValue: number | null;
+    volumeTierId: number | null;
+  }): Promise<number> {
+    if (deal.discountType === "fixed_override") {
+      return deal.discountValue ?? 0;
+    }
+    // Percentage discount: get the linked tier's price and apply discount
+    if (deal.volumeTierId) {
+      const tier = await this.getVolumeTier(deal.volumeTierId);
+      if (tier && tier.priceNumeric) {
+        const discount = deal.discountValue ?? 0;
+        return Number((tier.priceNumeric * (1 - discount / 100)).toFixed(6));
+      }
+    }
+    // Fallback: use base price
+    const base = await this.getBasePrice();
+    if (base && base.priceNumeric) {
+      const discount = deal.discountValue ?? 0;
+      return Number((base.priceNumeric * (1 - discount / 100)).toFixed(6));
+    }
+    return 0;
+  }
+
+  /** List all deals flagged for cascade review */
+  async listFlaggedDeals(): Promise<Deal[]> {
+    return getDb().select().from(deals).where(eq(deals.cascadeFlagged, true));
+  }
+
+  /** Acknowledge a flagged deal — clear the flag after admin review */
+  async acknowledgeDealCascade(id: number, _userName: string): Promise<Deal | undefined> {
+    const deal = await this.getDeal(id);
+    if (!deal) return undefined;
+    const effectivePrice = await this.computeDealEffectivePrice({
+      discountType: deal.discountType,
+      discountValue: deal.discountValue,
+      volumeTierId: deal.volumeTierId,
+    });
+    const [row] = await getDb().update(deals)
+      .set({ cascadeFlagged: false, cascadeFlaggedAt: null, effectivePrice, updatedAt: new Date() })
+      .where(eq(deals.id, id))
+      .returning();
+    return row;
   }
 
   // ─── Volume Tiers ───────────────────────────────
@@ -326,10 +394,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateVolumeTier(id: number, data: Partial<InsertVolumeTier>): Promise<VolumeTier | undefined> {
+    // If priceNumeric is being set manually, record the current base price
+    if (data.priceNumeric !== undefined) {
+      const base = await this.getBasePrice();
+      data.basePriceAtSet = base?.priceNumeric ?? 0;
+      data.pricePerGs = `£${data.priceNumeric}/GS`;
+    }
     const [row] = await getDb().update(volumeTiers)
       .set({ ...data, updatedAt: new Date() })
       .where(eq(volumeTiers.id, id))
       .returning();
+    return row;
+  }
+
+  async createVolumeTier(data: InsertVolumeTier): Promise<VolumeTier> {
+    const base = await this.getBasePrice();
+    const [row] = await getDb().insert(volumeTiers).values({
+      ...data,
+      basePriceAtSet: base?.priceNumeric ?? 0,
+    }).returning();
     return row;
   }
 
@@ -344,12 +427,105 @@ export class DatabaseStorage implements IStorage {
     return row;
   }
 
+  /** Get the single base price row (source of truth) */
+  async getBasePrice(): Promise<GsPricing | undefined> {
+    const [row] = await getDb().select().from(gsPricing).where(eq(gsPricing.isBasePrice, true)).limit(1);
+    return row;
+  }
+
   async updateGsPricing(id: number, data: Partial<InsertGsPricing>): Promise<GsPricing | undefined> {
     const [row] = await getDb().update(gsPricing)
       .set({ ...data, updatedAt: new Date() })
       .where(eq(gsPricing.id, id))
       .returning();
     return row;
+  }
+
+  /**
+   * CASCADE ENGINE: Update the base price and proportionally recalculate all downstream prices.
+   */
+  async updateBasePriceAndCascade(
+    id: number,
+    newPriceNumeric: number,
+    userName: string
+  ): Promise<{ updatedPricing: GsPricing; cascadedTiers: number; flaggedDeals: number }> {
+    const existing = await this.getGsPricing(id);
+    if (!existing || !existing.isBasePrice) {
+      throw new Error("can only cascade from the base price tier");
+    }
+
+    const oldPrice = existing.priceNumeric ?? 0;
+    if (oldPrice === 0) throw new Error("old base price is zero — cannot calculate ratio");
+
+    const ratio = newPriceNumeric / oldPrice;
+
+    // 1. Update base price row
+    const [updatedPricing] = await getDb().update(gsPricing)
+      .set({ priceNumeric: newPriceNumeric, pricePerGs: `£${newPriceNumeric}`, updatedAt: new Date() })
+      .where(eq(gsPricing.id, id))
+      .returning();
+
+    // 2. Recalculate all non-base gs_pricing tiers proportionally
+    const allPricingTiers = await getDb().select().from(gsPricing).where(eq(gsPricing.isBasePrice, false));
+    for (const tier of allPricingTiers) {
+      const oldTierPrice = tier.priceNumeric ?? 0;
+      const newTierPrice = Number((oldTierPrice * ratio).toFixed(6));
+      await getDb().update(gsPricing)
+        .set({ priceNumeric: newTierPrice, pricePerGs: `£${newTierPrice}`, updatedAt: new Date() })
+        .where(eq(gsPricing.id, tier.id));
+    }
+
+    // 3. Recalculate volume tier prices proportionally
+    const allTiers = await getDb().select().from(volumeTiers);
+    let cascadedTiers = 0;
+    for (const tier of allTiers) {
+      const oldTierPrice = tier.priceNumeric ?? 0;
+      if (oldTierPrice > 0 && tier.basePriceAtSet && tier.basePriceAtSet > 0) {
+        const tierRatio = oldTierPrice / tier.basePriceAtSet;
+        const newTierPrice = Number((tierRatio * newPriceNumeric).toFixed(6));
+        await getDb().update(volumeTiers)
+          .set({ priceNumeric: newTierPrice, pricePerGs: `£${newTierPrice}/GS`, basePriceAtSet: newPriceNumeric, updatedAt: new Date() })
+          .where(eq(volumeTiers.id, tier.id));
+        cascadedTiers++;
+      }
+    }
+
+    // 4. Flag all active/pending deals for review and recompute effective prices
+    const allDeals = await getDb().select().from(deals);
+    let flaggedDeals = 0;
+    const now = new Date();
+    for (const deal of allDeals) {
+      if (deal.status === "active" || deal.status === "pending") {
+        const effectivePrice = await this.computeDealEffectivePrice({
+          discountType: deal.discountType,
+          discountValue: deal.discountValue,
+          volumeTierId: deal.volumeTierId,
+        });
+        await getDb().update(deals)
+          .set({ cascadeFlagged: true, cascadeFlaggedAt: now, effectivePrice, updatedAt: now })
+          .where(eq(deals.id, deal.id));
+        flaggedDeals++;
+      }
+    }
+
+    // 5. Create approval queue entry
+    if (flaggedDeals > 0) {
+      await this.createApproval({
+        title: `base price changed: £${oldPrice} → £${newPriceNumeric}`,
+        type: "pricing cascade",
+        submittedBy: userName,
+        detail: `base price updated from £${oldPrice} to £${newPriceNumeric} (${ratio > 1 ? "+" : ""}${((ratio - 1) * 100).toFixed(1)}%). ${cascadedTiers} volume tiers recalculated. ${flaggedDeals} active deals flagged for review.`,
+        priority: "high",
+        status: "pending",
+      });
+    }
+
+    await this.logChange("cascade", "gs-pricing",
+      `base price changed £${oldPrice} → £${newPriceNumeric}. ${cascadedTiers} tiers cascaded, ${flaggedDeals} deals flagged.`,
+      userName
+    );
+
+    return { updatedPricing, cascadedTiers, flaggedDeals };
   }
 
   // ─── Equivalence ────────────────────────────────

@@ -202,34 +202,35 @@ async function seed() {
 
   // ─── Deals ───
   const dealData = [
-    { name: "Tesco UK National", country: "UK", flag: "🇬🇧", volume: "5M GS/yr", price: "£0.09/GS", level: 3, score: 92, status: "active", type: "corporate", notes: "Flagship UK deal" },
-    { name: "Woolworths AU Pilot", country: "AU", flag: "🇦🇺", volume: "1M GS/yr", price: "A$0.08/GS", level: 2, score: 78, status: "active", type: "pilot", notes: "Trial period — 6 months" },
-    { name: "Carrefour EU Expansion", country: "EU/FR", flag: "🇫🇷", volume: "3M GS/yr", price: "€0.11/GS", level: 2, score: 85, status: "pending", type: "corporate", notes: "Pending board sign-off" },
-    { name: "NTUC SG Entry", country: "SG", flag: "🇸🇬", volume: "500K GS/yr", price: "S$0.09/GS", level: 1, score: 60, status: "pending", type: "pilot", notes: "Exploratory phase" },
-    { name: "Whole Foods US Launch", country: "US", flag: "🇺🇸", volume: "2M GS/yr", price: "$0.07/GS", level: 1, score: 55, status: "pending", type: "corporate", notes: "Initial discussions" },
-    { name: "Sainsbury's Green Range", country: "UK", flag: "🇬🇧", volume: "4M GS/yr", price: "£0.10/GS", level: 3, score: 88, status: "active", type: "corporate", notes: "Premium green product line" },
-    { name: "Waitrose Premium Partner", country: "UK", flag: "🇬🇧", volume: "2M GS/yr", price: "£0.12/GS", level: 2, score: 80, status: "active", type: "premium", notes: "Higher GS match rate" },
+    { name: "Tesco UK National", country: "UK", flag: "🇬🇧", volume: "5M GS/yr", price: "£0.004/GS", level: 3, score: 92, status: "active", type: "corporate", volumeTierId: 3, discountType: "percentage" as const, discountValue: 10, effectivePrice: 0.0036, cascadeFlagged: false, notes: "Flagship UK deal — 10% off national tier" },
+    { name: "Woolworths AU Pilot", country: "AU", flag: "🇦🇺", volume: "1M GS/yr", price: "A$0.005/GS", level: 2, score: 78, status: "active", type: "pilot", volumeTierId: 2, discountType: "percentage" as const, discountValue: 15, effectivePrice: 0.00425, cascadeFlagged: false, notes: "Trial period — 15% pilot discount" },
+    { name: "Carrefour EU Expansion", country: "EU/FR", flag: "🇫🇷", volume: "3M GS/yr", price: "€0.004/GS", level: 2, score: 85, status: "pending", type: "corporate", volumeTierId: 3, discountType: "percentage" as const, discountValue: 5, effectivePrice: 0.0038, cascadeFlagged: false, notes: "Pending board sign-off" },
+    { name: "NTUC SG Entry", country: "SG", flag: "🇸🇬", volume: "500K GS/yr", price: "S$0.006/GS", level: 1, score: 60, status: "pending", type: "pilot", volumeTierId: 1, discountType: "percentage" as const, discountValue: 20, effectivePrice: 0.004, cascadeFlagged: false, notes: "Exploratory phase — early adopter discount" },
+    { name: "Whole Foods US Launch", country: "US", flag: "🇺🇸", volume: "2M GS/yr", price: "$0.003/GS", level: 1, score: 55, status: "pending", type: "corporate", volumeTierId: 3, discountType: "fixed_override" as const, discountValue: 0.003, effectivePrice: 0.003, cascadeFlagged: false, notes: "Fixed rate negotiated for US launch" },
+    { name: "Sainsbury's Green Range", country: "UK", flag: "🇬🇧", volume: "4M GS/yr", price: "£0.004/GS", level: 3, score: 88, status: "active", type: "corporate", volumeTierId: 3, discountType: "percentage" as const, discountValue: 8, effectivePrice: 0.00368, cascadeFlagged: false, notes: "Premium green product line — 8% partner discount" },
+    { name: "Waitrose Premium Partner", country: "UK", flag: "🇬🇧", volume: "2M GS/yr", price: "£0.005/GS", level: 2, score: 80, status: "active", type: "premium", volumeTierId: 2, discountType: "percentage" as const, discountValue: 0, effectivePrice: 0.005, cascadeFlagged: false, notes: "Full rate — premium positioning" },
   ];
   const insertedDeals = await db.insert(deals).values(dealData).returning();
   console.log(`  ✓ ${insertedDeals.length} deals`);
 
   // ─── Volume Tiers ───
   const vtData = [
-    { name: "Standard", threshold: "0 – 100K GS", pricePerGs: "£0.12/GS", discount: "0%", description: "Entry-level for small brands and trials" },
-    { name: "Mid-Tier", threshold: "100K – 1M GS", pricePerGs: "£0.10/GS", discount: "17%", description: "Growth phase — most regional retailers" },
-    { name: "Major", threshold: "1M – 10M GS", pricePerGs: "£0.08/GS", discount: "33%", description: "National retailer standard" },
-    { name: "Enterprise", threshold: "10M+ GS", pricePerGs: "£0.06/GS", discount: "50%", description: "Multi-market enterprise agreements" },
+    { name: "Standard", threshold: "0 – 100K GS", pricePerGs: "£0.005/GS", priceNumeric: 0.005, basePriceAtSet: 0.005, discount: "0%", description: "Entry-level for small brands and trials" },
+    { name: "Mid-Tier", threshold: "100K – 1M GS", pricePerGs: "£0.005/GS", priceNumeric: 0.005, basePriceAtSet: 0.005, discount: "0%", description: "Growth phase — most regional retailers" },
+    { name: "Major", threshold: "1M – 10M GS", pricePerGs: "£0.004/GS", priceNumeric: 0.004, basePriceAtSet: 0.005, discount: "20%", description: "National retailer standard" },
+    { name: "Enterprise", threshold: "10M+ GS", pricePerGs: "£0.003/GS", priceNumeric: 0.003, basePriceAtSet: 0.005, discount: "40%", description: "Multi-market enterprise agreements" },
   ];
   const insertedVT = await db.insert(volumeTiers).values(vtData).returning();
   console.log(`  ✓ ${insertedVT.length} volume tiers`);
 
   // ─── GS Pricing ───
   const gspData = [
-    { tierName: "Standard Retail", pricePerGs: "£0.12", volumeRange: "0 – 100K", discountPct: "0%", description: "Base retail pricing" },
-    { tierName: "Growth Partner", pricePerGs: "£0.10", volumeRange: "100K – 500K", discountPct: "17%", description: "Growing brand discount" },
-    { tierName: "National Partner", pricePerGs: "£0.08", volumeRange: "500K – 5M", discountPct: "33%", description: "National-scale pricing" },
-    { tierName: "Enterprise", pricePerGs: "£0.06", volumeRange: "5M – 50M", discountPct: "50%", description: "Enterprise volume pricing" },
-    { tierName: "Cause-Based Partner", pricePerGs: "£0.04", volumeRange: "Any", discountPct: "67%", description: "Non-profit / B-Corp / cause-led brands" },
+    { tierName: "Base Rate", pricePerGs: "£0.005", priceNumeric: 0.005, volumeRange: "—", discountPct: "—", description: "Single source of truth — base price per GS for major retailers (voluntary credits)", isBasePrice: true },
+    { tierName: "Standard Retail", pricePerGs: "£0.005", priceNumeric: 0.005, volumeRange: "0 – 100K", discountPct: "0%", description: "Entry-level retail pricing at base rate", isBasePrice: false },
+    { tierName: "Growth Partner", pricePerGs: "£0.005", priceNumeric: 0.005, volumeRange: "100K – 500K", discountPct: "0%", description: "Growing brand — same rate, volume builds trust", isBasePrice: false },
+    { tierName: "National Partner", pricePerGs: "£0.004", priceNumeric: 0.004, volumeRange: "500K – 5M", discountPct: "20%", description: "National-scale pricing for major retailers", isBasePrice: false },
+    { tierName: "Enterprise", pricePerGs: "£0.003", priceNumeric: 0.003, volumeRange: "5M – 50M", discountPct: "40%", description: "Multi-market enterprise agreements", isBasePrice: false },
+    { tierName: "Cause-Based Partner", pricePerGs: "£0.0025", priceNumeric: 0.0025, volumeRange: "Any", discountPct: "50%", description: "Non-profit / B-Corp / cause-led brands", isBasePrice: false },
   ];
   const insertedGSP = await db.insert(gsPricing).values(gspData).returning();
   console.log(`  ✓ ${insertedGSP.length} gs pricing tiers`);
