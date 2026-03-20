@@ -30,6 +30,7 @@ import RegulatoryUpdates from "@/pages/RegulatoryUpdates";
 import SystemStatus from "@/pages/SystemStatus";
 import ChangeLog from "@/pages/ChangeLog";
 import Approvals from "@/pages/Approvals";
+import UserManagement from "@/pages/UserManagement";
 
 function AppRouter() {
   return (
@@ -54,6 +55,7 @@ function AppRouter() {
         <Route path="/status" component={SystemStatus} />
         <Route path="/changelog" component={ChangeLog} />
         <Route path="/approvals" component={Approvals} />
+        <Route path="/users" component={UserManagement} />
         <Route component={NotFound} />
       </Switch>
     </AppLayout>

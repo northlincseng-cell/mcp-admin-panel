@@ -27,6 +27,7 @@ import {
   LogOut,
   KeyRound,
   User,
+  Users,
 } from "lucide-react";
 
 interface NavItem {
@@ -86,6 +87,12 @@ const navSections: NavSection[] = [
       { label: "system status", href: "/status", icon: Activity },
       { label: "change log", href: "/changelog", icon: History },
       { label: "approvals", href: "/approvals", icon: CheckCircle },
+    ],
+  },
+  {
+    title: "system",
+    items: [
+      { label: "user management", href: "/users", icon: Users },
     ],
   },
 ];

@@ -18,7 +18,12 @@ import {
   insertSystemStatusSchema,
   insertApprovalSchema,
   hasRole,
+  users,
+  ROLE_HIERARCHY,
 } from "@shared/schema";
+import bcrypt from "bcrypt";
+import { getDb } from "./db";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 // ═══════════════════════════════════════════════════
@@ -859,6 +864,122 @@ export async function registerRoutes(
       res.json(updated);
     } catch (e: any) {
       if (e instanceof z.ZodError) return res.status(400).json({ error: "validation failed", details: e.errors });
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // ═══════════════════════════════════════════════════
+  //  USER MANAGEMENT (super_admin only for mutations)
+  // ═══════════════════════════════════════════════════
+
+  app.get("/api/users", requireAuth, async (_req: Request, res: Response) => {
+    try {
+      const db = getDb();
+      const allUsers = await db.select({
+        id: users.id,
+        username: users.username,
+        displayName: users.displayName,
+        role: users.role,
+        active: users.active,
+        mustChangePassword: users.mustChangePassword,
+        lastLoginAt: users.lastLoginAt,
+        createdAt: users.createdAt,
+      }).from(users);
+      res.json(allUsers);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.post("/api/users", requireRole("super_admin"), async (req: Request, res: Response) => {
+    try {
+      const { username, displayName, role, password } = req.body;
+      if (!username || !displayName || !role || !password) {
+        return res.status(400).json({ error: "username, displayName, role, and password are required" });
+      }
+      if (password.length < 8) {
+        return res.status(400).json({ error: "password must be at least 8 characters" });
+      }
+      if (!ROLE_HIERARCHY.includes(role)) {
+        return res.status(400).json({ error: "invalid role" });
+      }
+
+      const db = getDb();
+      const existing = await db.select().from(users).where(eq(users.username, username.toLowerCase().trim())).limit(1);
+      if (existing.length) {
+        return res.status(409).json({ error: "username already exists" });
+      }
+
+      const salt = await bcrypt.genSalt(12);
+      const hash = await bcrypt.hash(password, salt);
+      const [newUser] = await db.insert(users).values({
+        username: username.toLowerCase().trim(),
+        displayName,
+        role,
+        passwordHash: hash,
+        mustChangePassword: true,
+        active: true,
+      }).returning();
+
+      await storage.logChange("created", "users", `created user: ${newUser.username} (${role})`, req.user?.username || "system");
+      const { passwordHash, ...safe } = newUser;
+      res.status(201).json(safe);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.put("/api/users/:id", requireRole("super_admin"), async (req: Request, res: Response) => {
+    try {
+      const id = parseId(req);
+      if (!id) return res.status(400).json({ error: "invalid id" });
+      const { displayName, role, active } = req.body;
+      const db = getDb();
+
+      const updates: any = { updatedAt: new Date() };
+      if (displayName !== undefined) updates.displayName = displayName;
+      if (role !== undefined) {
+        if (!ROLE_HIERARCHY.includes(role)) {
+          return res.status(400).json({ error: "invalid role" });
+        }
+        updates.role = role;
+      }
+      if (active !== undefined) updates.active = active;
+
+      const [updated] = await db.update(users).set(updates).where(eq(users.id, id)).returning();
+      if (!updated) return res.status(404).json({ error: "user not found" });
+
+      await storage.logChange("updated", "users", `updated user: ${updated.username}`, req.user?.username || "system");
+      const { passwordHash, ...safe } = updated;
+      res.json(safe);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.post("/api/users/:id/reset-password", requireRole("super_admin"), async (req: Request, res: Response) => {
+    try {
+      const id = parseId(req);
+      if (!id) return res.status(400).json({ error: "invalid id" });
+      const { password } = req.body;
+      if (!password || password.length < 8) {
+        return res.status(400).json({ error: "password must be at least 8 characters" });
+      }
+
+      const db = getDb();
+      const salt = await bcrypt.genSalt(12);
+      const hash = await bcrypt.hash(password, salt);
+      const [updated] = await db.update(users).set({
+        passwordHash: hash,
+        mustChangePassword: true,
+        updatedAt: new Date(),
+      }).where(eq(users.id, id)).returning();
+
+      if (!updated) return res.status(404).json({ error: "user not found" });
+
+      await storage.logChange("reset-password", "users", `reset password for user: ${updated.username}`, req.user?.username || "system");
+      res.json({ success: true });
+    } catch (e: any) {
       res.status(500).json({ error: e.message });
     }
   });
