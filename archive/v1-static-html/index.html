@@ -1,0 +1,2876 @@
+<!--
+   ______                            __
+  / ____/___  ____ ___  ____  __  __/ /____  _____
+ / /   / __ \/ __ `__ \/ __ \/ / / / __/ _ \/ ___/
+/ /___/ /_/ / / / / / / /_/ / /_/ / /_/  __/ /
+\____/\____/_/ /_/ /_/ .___/\__,_/\__/\___/_/
+                    /_/
+        Created with Perplexity Computer
+        https://www.perplexity.ai/computer
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Perplexity Computer Attribution — SEO Meta Tags -->
+<meta name="generator" content="Perplexity Computer">
+<meta name="author" content="Perplexity Computer">
+<meta property="og:see_also" content="https://www.perplexity.ai/computer">
+<link rel="author" href="https://www.perplexity.ai/computer">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>gs master control panel — my green squares</title>
+<meta name="description" content="my green squares governance control plane — commercial pricing, equivalence engines, and value protection for verified green square issuance.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════════════
+   MGS MASTER CONTROL PANEL — DESIGN TOKENS
+   ═══════════════════════════════════════════════════ */
+:root {
+  --green-primary: #6ab023;
+  --green-bright: #8cc63f;
+  --green-dark: #4a7a18;
+  --sidebar-bg: #1a2a14;
+  --sidebar-hover: #243a1c;
+  --sidebar-active: #2d4a24;
+  --bg-page: #eef2e8;
+  --bg-card: #ffffff;
+  --bg-surface: #f5f8f2;
+  --border-color: #d4ddc8;
+  --border-light: #e2e8da;
+  --text-primary: #1b3410;
+  --text-body: #333333;
+  --text-muted: #666666;
+  --text-faint: #999999;
+  --text-inverse: #f0f5ec;
+  --shadow-sm: 0 1px 2px rgba(26,42,20,0.06);
+  --shadow-md: 0 2px 8px rgba(26,42,20,0.08);
+  --shadow-lg: 0 4px 16px rgba(26,42,20,0.1);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --transition: 200ms ease;
+  --red: #dc3545;
+  --amber: #e6a817;
+  --blue: #2563eb;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg-page: #0f1a0a;
+  --bg-card: #1c2c16;
+  --bg-surface: #162210;
+  --border-color: #2d4422;
+  --border-light: #263a1c;
+  --text-primary: #e8f0e2;
+  --text-body: #c8d8be;
+  --text-muted: #8fa882;
+  --text-faint: #5e7a52;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,0.4);
+  --sidebar-bg: #0c1408;
+  --sidebar-hover: #162210;
+  --sidebar-active: #1c2c16;
+  color-scheme: dark;
+}
+
+/* ═══════════════════════════════════════════════════
+   BASE RESET + TYPOGRAPHY
+   ═══════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-body);
+  background: var(--bg-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ═══════════════════════════════════════════════════
+   APP SHELL
+   ═══════════════════════════════════════════════════ */
+.app-shell {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* ═══════════════════════════════════════════════════
+   SIDEBAR
+   ═══════════════════════════════════════════════════ */
+.sidebar {
+  width: 260px;
+  min-width: 260px;
+  background: var(--sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255,255,255,0.06);
+  transition: transform var(--transition);
+  z-index: 100;
+}
+
+.sidebar-logo {
+  padding: 20px 20px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.sidebar-logo svg {
+  flex-shrink: 0;
+}
+
+.sidebar-logo span {
+  color: #c8d8be;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 0;
+}
+
+.sidebar-nav::-webkit-scrollbar { width: 4px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+.nav-group {
+  margin-bottom: 4px;
+}
+
+.nav-group-label {
+  padding: 8px 20px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: lowercase;
+  letter-spacing: 0.08em;
+  color: rgba(200,216,190,0.4);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 20px;
+  color: rgba(200,216,190,0.65);
+  cursor: pointer;
+  transition: all var(--transition);
+  font-size: 13px;
+  font-weight: 400;
+  border-left: 3px solid transparent;
+  user-select: none;
+}
+
+.nav-item:hover {
+  background: var(--sidebar-hover);
+  color: rgba(200,216,190,0.9);
+}
+
+.nav-item.active {
+  background: var(--sidebar-active);
+  color: var(--green-bright);
+  border-left-color: var(--green-bright);
+  font-weight: 500;
+}
+
+.nav-item .nav-emoji {
+  font-size: 15px;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.sidebar-footer {
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar-footer .nav-item {
+  padding: 7px 12px;
+  font-size: 12px;
+  border-left: none;
+  border-radius: var(--radius-sm);
+}
+
+.sidebar-footer .nav-item:hover {
+  background: var(--sidebar-hover);
+}
+
+/* ═══════════════════════════════════════════════════
+   MAIN CONTENT AREA
+   ═══════════════════════════════════════════════════ */
+.main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.header {
+  height: 56px;
+  min-height: 56px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  box-shadow: var(--shadow-sm);
+  z-index: 50;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-left h1 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.breadcrumb {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.breadcrumb span { color: var(--text-faint); }
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition);
+  font-family: inherit;
+}
+
+.header-btn:hover {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--green-primary);
+}
+
+.theme-toggle {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 16px;
+  transition: all var(--transition);
+}
+
+.theme-toggle:hover {
+  border-color: var(--green-primary);
+  color: var(--green-primary);
+}
+
+.sync-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.sync-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green-primary);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.content::-webkit-scrollbar { width: 6px; }
+.content::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 6px; }
+.content::-webkit-scrollbar-track { background: transparent; }
+
+/* ═══════════════════════════════════════════════════
+   PAGE CONTAINER
+   ═══════════════════════════════════════════════════ */
+.page { display: none; }
+.page.active { display: block; animation: fadeIn 200ms ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ═══════════════════════════════════════════════════
+   KPI CARDS
+   ═══════════════════════════════════════════════════ */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.kpi-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition);
+}
+
+.kpi-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--green-primary);
+}
+
+.kpi-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+  margin-bottom: 8px;
+}
+
+.kpi-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.kpi-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 6px;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.kpi-delta.up { color: #2d7a0e; background: rgba(106,176,35,0.12); }
+.kpi-delta.down { color: var(--red); background: rgba(220,53,69,0.1); }
+.kpi-delta.neutral { color: var(--text-muted); background: var(--bg-surface); }
+
+[data-theme="dark"] .kpi-delta.up { color: var(--green-bright); background: rgba(106,176,35,0.15); }
+
+/* ═══════════════════════════════════════════════════
+   CHART CONTAINERS
+   ═══════════════════════════════════════════════════ */
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.chart-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.chart-card h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.chart-wrapper {
+  position: relative;
+  height: 260px;
+}
+
+/* ═══════════════════════════════════════════════════
+   ACTIVITY FEED
+   ═══════════════════════════════════════════════════ */
+.activity-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.activity-card h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+.activity-item:last-child { border-bottom: none; }
+
+.activity-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green-primary);
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.activity-text {
+  font-size: 13px;
+  color: var(--text-body);
+  line-height: 1.5;
+}
+
+.activity-time {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: 2px;
+}
+
+/* ═══════════════════════════════════════════════════
+   TABLES
+   ═══════════════════════════════════════════════════ */
+.table-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.table-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  transition: border-color var(--transition);
+}
+
+.search-box:focus-within { border-color: var(--green-primary); }
+
+.search-box input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 12px;
+  color: var(--text-body);
+  font-family: inherit;
+  width: 180px;
+}
+
+.search-box input::placeholder { color: var(--text-faint); }
+
+.table-scroll { overflow-x: auto; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+th {
+  text-align: left;
+  padding: 10px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-color);
+  text-transform: lowercase;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: color var(--transition);
+}
+
+th:hover { color: var(--green-primary); }
+th.sorted { color: var(--green-primary); }
+th .sort-arrow { font-size: 10px; margin-left: 4px; }
+
+td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-body);
+  white-space: nowrap;
+}
+
+tr:hover td { background: var(--bg-surface); }
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.status-pill.active { background: rgba(106,176,35,0.12); color: #2d7a0e; }
+.status-pill.pending { background: rgba(230,168,23,0.12); color: #b8860b; }
+.status-pill.planned { background: var(--bg-surface); color: var(--text-muted); border: 1px solid var(--border-color); }
+.status-pill.live { background: rgba(106,176,35,0.12); color: #2d7a0e; }
+.status-pill.scheduled { background: rgba(37,99,235,0.1); color: var(--blue); }
+
+[data-theme="dark"] .status-pill.active { background: rgba(106,176,35,0.15); color: var(--green-bright); }
+[data-theme="dark"] .status-pill.pending { background: rgba(230,168,23,0.15); color: #e6a817; }
+[data-theme="dark"] .status-pill.planned { background: rgba(255,255,255,0.05); color: var(--text-muted); border-color: var(--border-color); }
+
+/* ═══════════════════════════════════════════════════
+   DEAL CARDS
+   ═══════════════════════════════════════════════════ */
+.deals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.deal-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition);
+}
+
+.deal-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--green-primary);
+  transform: translateY(-1px);
+}
+
+.deal-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.deal-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.deal-flag { font-size: 20px; }
+
+.deal-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.deal-meta-item label {
+  display: block;
+  font-size: 10px;
+  color: var(--text-faint);
+  text-transform: lowercase;
+  margin-bottom: 2px;
+}
+
+.deal-meta-item span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.deal-bottom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-light);
+}
+
+.score-gauge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.score-gauge .gauge-bar {
+  width: 48px; height: 5px;
+  background: var(--border-color);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.score-gauge .gauge-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--green-primary);
+}
+
+.maturity-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(106,176,35,0.1);
+  color: var(--green-dark);
+}
+
+[data-theme="dark"] .maturity-badge { color: var(--green-bright); background: rgba(106,176,35,0.15); }
+
+.deal-type-tag {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+}
+
+/* ═══════════════════════════════════════════════════
+   VOLUME TIERS TABLE
+   ═══════════════════════════════════════════════════ */
+.tiers-layout {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 16px;
+}
+
+/* ═══════════════════════════════════════════════════
+   EQUIVALENCE ENGINE
+   ═══════════════════════════════════════════════════ */
+.eq-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.eq-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.eq-card h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.stacked-bar-container {
+  margin-bottom: 20px;
+}
+
+.stacked-bar {
+  display: flex;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.stacked-bar div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: white;
+  transition: all var(--transition);
+}
+
+.eq-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.eq-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.eq-legend-dot {
+  width: 10px; height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.eq-legend-label { color: var(--text-body); flex: 1; }
+.eq-legend-value { font-weight: 600; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.eq-legend-pct { font-size: 11px; color: var(--text-muted); width: 36px; text-align: right; }
+
+.value-floor-box {
+  background: rgba(220,53,69,0.06);
+  border: 1px solid rgba(220,53,69,0.2);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-top: 16px;
+}
+
+[data-theme="dark"] .value-floor-box {
+  background: rgba(220,53,69,0.1);
+  border-color: rgba(220,53,69,0.3);
+}
+
+.value-floor-box h4 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--red);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.value-floor-box p {
+  font-size: 13px;
+  color: var(--text-body);
+  line-height: 1.6;
+}
+
+/* ═══════════════════════════════════════════════════
+   VALUE PROTECTION
+   ═══════════════════════════════════════════════════ */
+.vp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.vp-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.vp-card h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.dimension-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.dimension-label {
+  font-size: 12px;
+  color: var(--text-body);
+  width: 130px;
+  flex-shrink: 0;
+}
+
+.dimension-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.dimension-fill {
+  height: 100%;
+  background: var(--green-primary);
+  border-radius: 4px;
+  transition: width 600ms ease;
+}
+
+.dimension-pct {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  width: 36px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.threshold-bands {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.band-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+
+.band-dot {
+  width: 12px; height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.band-range { font-weight: 600; color: var(--text-primary); width: 60px; }
+.band-label { color: var(--text-body); }
+
+.cardinal-rule-box {
+  background: rgba(106,176,35,0.06);
+  border: 2px solid var(--green-primary);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  text-align: center;
+}
+
+[data-theme="dark"] .cardinal-rule-box { background: rgba(106,176,35,0.08); }
+
+.cardinal-rule-box h4 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--green-primary);
+  margin-bottom: 8px;
+}
+
+.cardinal-rule-box p {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════════════════
+   C2050 FEED
+   ═══════════════════════════════════════════════════ */
+.feed-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 14px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+}
+
+.feed-status-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--green-primary);
+  box-shadow: 0 0 8px rgba(106,176,35,0.4);
+  animation: pulse 2s infinite;
+}
+
+.feed-status-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.feed-status-time {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.feed-note {
+  margin-top: 16px;
+  padding: 14px 20px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* ═══════════════════════════════════════════════════
+   CARBON MARKET CARDS
+   ═══════════════════════════════════════════════════ */
+.market-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.market-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition);
+}
+
+.market-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--green-primary);
+}
+
+.market-name {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.market-price {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.market-delta {
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.market-delta.up { color: #2d7a0e; }
+.market-delta.down { color: var(--red); }
+[data-theme="dark"] .market-delta.up { color: var(--green-bright); }
+
+/* ═══════════════════════════════════════════════════
+   CHANGE LOG / TIMELINE
+   ═══════════════════════════════════════════════════ */
+.timeline {
+  position: relative;
+  padding-left: 24px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--border-color);
+}
+
+.timeline-entry {
+  position: relative;
+  padding-bottom: 20px;
+  padding-left: 20px;
+}
+
+.timeline-entry::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: 4px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--green-primary);
+  border: 2px solid var(--bg-card);
+}
+
+.timeline-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.timeline-actor {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.timeline-time {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.timeline-body {
+  font-size: 13px;
+  color: var(--text-body);
+  line-height: 1.5;
+}
+
+.timeline-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 4px 10px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline-old { color: var(--text-faint); text-decoration: line-through; }
+.timeline-arrow { color: var(--text-faint); }
+.timeline-new { color: var(--green-primary); font-weight: 600; }
+
+/* ═══════════════════════════════════════════════════
+   APPROVAL QUEUE
+   ═══════════════════════════════════════════════════ */
+.approval-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+}
+
+.approval-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  border-left: 4px solid var(--amber);
+}
+
+.approval-card h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+}
+
+.approval-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.8;
+}
+
+.approval-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all var(--transition);
+}
+
+.btn-primary {
+  background: var(--green-primary);
+  color: white;
+}
+.btn-primary:hover { background: var(--green-dark); }
+
+.btn-outline {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+}
+.btn-outline:hover { border-color: var(--text-muted); color: var(--text-primary); }
+
+.btn-danger {
+  background: transparent;
+  color: var(--red);
+  border: 1px solid rgba(220,53,69,0.3);
+}
+.btn-danger:hover { background: rgba(220,53,69,0.06); }
+
+/* ═══════════════════════════════════════════════════
+   SYSTEM STATUS
+   ═══════════════════════════════════════════════════ */
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.status-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.status-card h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 12px;
+}
+
+.status-row:last-child { border-bottom: none; }
+
+.status-row-label { color: var(--text-muted); }
+.status-row-value { color: var(--text-primary); font-weight: 500; }
+
+.status-ok { color: var(--green-primary); }
+.status-warn { color: var(--amber); }
+
+/* ═══════════════════════════════════════════════════
+   GS PRICING PAGE
+   ═══════════════════════════════════════════════════ */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.pricing-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.pricing-card h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.pricing-card .price-big {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--green-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.pricing-card .price-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+/* ═══════════════════════════════════════════════════
+   DEAL SCORING PAGE
+   ═══════════════════════════════════════════════════ */
+.scoring-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 16px;
+}
+
+.scoring-section h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+/* ═══════════════════════════════════════════════════
+   REGULATORY PAGE
+   ═══════════════════════════════════════════════════ */
+.reg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+}
+
+.reg-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.reg-card h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.reg-card .reg-date {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-bottom: 10px;
+}
+
+.reg-card p {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* ═══════════════════════════════════════════════════
+   SECTION TITLE
+   ═══════════════════════════════════════════════════ */
+.page-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+
+.page-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+/* ═══════════════════════════════════════════════════
+   DONUT CHART
+   ═══════════════════════════════════════════════════ */
+.donut-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 240px;
+}
+
+/* ═══════════════════════════════════════════════════
+   HARD FLOORS TABLE
+   ═══════════════════════════════════════════════════ */
+.floors-table {
+  width: 100%;
+  margin-top: 16px;
+}
+
+.floors-table td {
+  padding: 8px 12px;
+}
+
+.floors-table .floor-icon {
+  width: 28px;
+  text-align: center;
+}
+
+/* ═══════════════════════════════════════════════════
+   FOOTER
+   ═══════════════════════════════════════════════════ */
+.main-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.main-footer a {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+
+.main-footer a:hover { color: var(--green-primary); }
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .charts-row { grid-template-columns: 1fr; }
+  .eq-layout { grid-template-columns: 1fr; }
+  .vp-grid { grid-template-columns: 1fr; }
+  .tiers-layout { grid-template-columns: 1fr; }
+  .status-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    transform: translateX(-100%);
+  }
+  .sidebar.open { transform: translateX(0); }
+  .kpi-grid { grid-template-columns: 1fr; }
+  .mobile-menu-btn { display: flex !important; }
+}
+
+.mobile-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px; height: 32px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 18px;
+}
+
+/* ═══════════════════════════════════════════════════
+   SCROLLBAR
+   ═══════════════════════════════════════════════════ */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* Chart.js dark mode text */
+[data-theme="dark"] canvas { filter: none; }
+
+/* ═══════════════════════════════════════════════════
+   MODAL
+   ═══════════════════════════════════════════════════ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 150ms ease;
+}
+[data-theme="dark"] .modal-overlay { background: rgba(0,0,0,0.7); }
+
+.modal-card {
+  max-width: 540px;
+  width: 90%;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-color);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.modal-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.modal-close {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition);
+}
+.modal-close:hover { background: var(--bg-surface); color: var(--text-primary); }
+
+#modalBody {
+  padding: 16px 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border-light);
+}
+
+.modal-form-group {
+  margin-bottom: 14px;
+}
+
+.modal-form-group label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: lowercase;
+  margin-bottom: 4px;
+  letter-spacing: 0.02em;
+}
+
+.modal-form-group input,
+.modal-form-group select,
+.modal-form-group textarea {
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  color: var(--text-body);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.modal-form-group input:focus,
+.modal-form-group select:focus,
+.modal-form-group textarea:focus {
+  border-color: var(--green-primary);
+}
+
+.modal-form-group textarea { resize: vertical; min-height: 60px; }
+
+.btn-save {
+  background: var(--green-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 7px 18px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-transform: lowercase;
+  transition: all var(--transition);
+}
+.btn-save:hover { background: var(--green-dark); }
+
+.btn-cancel {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 7px 18px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-transform: lowercase;
+  transition: all var(--transition);
+}
+.btn-cancel:hover { border-color: var(--text-muted); color: var(--text-primary); }
+
+/* ═══════════════════════════════════════════════════
+   CRUD ACTION BUTTONS
+   ═══════════════════════════════════════════════════ */
+.btn-add {
+  background: var(--green-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 6px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-transform: lowercase;
+  transition: all var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn-add:hover { background: var(--green-dark); }
+
+.btn-icon {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition);
+  line-height: 1;
+}
+.btn-icon:hover { background: var(--bg-surface); }
+.btn-icon.edit-btn { color: var(--text-muted); }
+.btn-icon.edit-btn:hover { color: var(--green-primary); }
+.btn-icon.delete-btn { color: var(--text-faint); }
+.btn-icon.delete-btn:hover { color: var(--red); }
+
+.row-actions {
+  display: flex;
+  gap: 2px;
+  justify-content: flex-end;
+}
+
+.card-actions {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.deal-card, .market-card, .reg-card, .pricing-card, .approval-card {
+  position: relative;
+}
+
+.deal-card:hover .card-actions,
+.market-card:hover .card-actions,
+.reg-card:hover .card-actions,
+.pricing-card:hover .card-actions {
+  opacity: 1;
+}
+
+.inline-edit-input {
+  background: var(--bg-surface);
+  border: 1px solid var(--green-primary);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  color: var(--text-body);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  width: 80px;
+  outline: none;
+}
+
+/* ═══════════════════════════════════════════════════
+   TOAST NOTIFICATIONS
+   ═══════════════════════════════════════════════════ */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toast {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 10px 18px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-body);
+  box-shadow: var(--shadow-lg);
+  animation: toastIn 200ms ease, toastOut 200ms ease 2800ms forwards;
+  font-family: 'DM Sans', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toast.success { border-left: 3px solid var(--green-primary); }
+.toast.error { border-left: 3px solid var(--red); }
+.toast.info { border-left: 3px solid var(--blue); }
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes toastOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(10px); }
+}
+
+/* section header with add button */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.section-header .page-title { margin-bottom: 0; }
+.section-header-left .page-subtitle { margin-bottom: 0; }
+
+/* approval resolved styling */
+.approval-card.resolved {
+  opacity: 0.55;
+  border-left-color: var(--border-color);
+}
+.approval-card.resolved .approval-actions { display: none; }
+.approval-status-badge {
+  display: inline-flex;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+.approval-status-badge.approved { background: rgba(106,176,35,0.12); color: #2d7a0e; }
+.approval-status-badge.rejected { background: rgba(220,53,69,0.1); color: var(--red); }
+[data-theme="dark"] .approval-status-badge.approved { color: var(--green-bright); background: rgba(106,176,35,0.15); }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <!-- ═══════════════════ SIDEBAR ═══════════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="2" width="24" height="24" rx="4" fill="#6ab023"/>
+        <rect x="6" y="6" width="16" height="16" rx="2" fill="#8cc63f"/>
+        <rect x="10" y="10" width="8" height="8" rx="1" fill="#4a7a18"/>
+      </svg>
+      <span>my green squares</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-group">
+        <div class="nav-group-label">overview</div>
+        <div class="nav-item active" data-page="dashboard"><span class="nav-emoji">📊</span> dashboard</div>
+        <div class="nav-item" data-page="system-status"><span class="nav-emoji">🔄</span> system status</div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">commercial</div>
+        <div class="nav-item" data-page="country-defaults"><span class="nav-emoji">🌍</span> country defaults</div>
+        <div class="nav-item" data-page="corporate-deals"><span class="nav-emoji">🤝</span> corporate deals</div>
+        <div class="nav-item" data-page="volume-tiers"><span class="nav-emoji">📊</span> volume tiers</div>
+        <div class="nav-item" data-page="gs-pricing"><span class="nav-emoji">💰</span> gs pricing</div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">engines</div>
+        <div class="nav-item" data-page="equivalence-engine"><span class="nav-emoji">⚖️</span> equivalence engine</div>
+        <div class="nav-item" data-page="value-protection"><span class="nav-emoji">🛡️</span> value protection</div>
+        <div class="nav-item" data-page="deal-scoring"><span class="nav-emoji">📋</span> deal scoring</div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">data feeds</div>
+        <div class="nav-item" data-page="c2050-feed"><span class="nav-emoji">📡</span> c2050 feed</div>
+        <div class="nav-item" data-page="carbon-markets"><span class="nav-emoji">📈</span> carbon markets</div>
+        <div class="nav-item" data-page="regulatory-updates"><span class="nav-emoji">📜</span> regulatory updates</div>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">audit</div>
+        <div class="nav-item" data-page="change-log"><span class="nav-emoji">📝</span> change log</div>
+        <div class="nav-item" data-page="approval-queue"><span class="nav-emoji">✅</span> approval queue</div>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="nav-item" onclick="alert('export functionality coming soon')"><span class="nav-emoji">📤</span> export data</div>
+      <div class="nav-item" onclick="alert('documentation coming soon')"><span class="nav-emoji">📚</span> docs</div>
+      <div class="nav-item" onclick="alert('settings coming soon')"><span class="nav-emoji">⚙️</span> settings</div>
+    </div>
+  </aside>
+
+  <!-- ═══════════════════ MAIN ═══════════════════ -->
+  <div class="main-area">
+    <header class="header">
+      <div class="header-left">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <div>
+          <h1 id="headerTitle">dashboard</h1>
+          <div class="breadcrumb">gs master control panel <span>›</span> <span id="headerBreadcrumb">overview</span></div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="sync-indicator">
+          <span class="sync-dot"></span>
+          <span>live · last sync 2m ago</span>
+        </div>
+        <button class="header-btn" onclick="alert('notification centre coming soon')">🔔 3</button>
+        <button class="theme-toggle" id="themeToggle" title="toggle dark mode">🌙</button>
+      </div>
+    </header>
+
+    <main class="content" id="mainContent">
+
+      <!-- ═══════════ DASHBOARD ═══════════ -->
+      <div class="page active" id="page-dashboard">
+
+        <div class="kpi-grid" id="kpiGrid">
+          <!-- rendered by JS -->
+        </div>
+
+        <div class="charts-row">
+          <div class="chart-card">
+            <h3>gs issuance by month</h3>
+            <div class="chart-wrapper"><canvas id="chartIssuance"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <h3>revenue by country</h3>
+            <div class="chart-wrapper"><canvas id="chartRevenue"></canvas></div>
+          </div>
+        </div>
+
+        <div class="activity-card">
+          <h3>recent activity</h3>
+          <div id="activityFeed">
+            <!-- rendered by JS from changelog -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ SYSTEM STATUS ═══════════ -->
+      <div class="page" id="page-system-status">
+        <div class="page-title">system status</div>
+        <div class="page-subtitle">infrastructure and service health monitoring</div>
+
+        <div class="status-grid" id="statusGrid">
+          <!-- rendered by JS -->
+        </div>
+      </div>
+
+      <!-- ═══════════ COUNTRY DEFAULTS ═══════════ -->
+      <div class="page" id="page-country-defaults">
+        <div class="section-header">
+          <div class="section-header-left">
+            <div class="page-title">country defaults</div>
+            <div class="page-subtitle">baseline pricing, compliance frameworks, and readiness scores by jurisdiction</div>
+          </div>
+          <button class="btn-add" onclick="openCountryModal()">+ add country</button>
+        </div>
+
+        <div class="table-container">
+          <div class="table-header">
+            <h3 id="countryCount">jurisdictions</h3>
+            <div class="search-box">
+              <span>🔍</span>
+              <input type="text" placeholder="search countries..." id="countrySearch" oninput="filterCountryTable()">
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table id="countryTable">
+              <thead>
+                <tr>
+                  <th onclick="sortTable('countryTable',0)">country <span class="sort-arrow">↕</span></th>
+                  <th onclick="sortTable('countryTable',1)">carbon reference <span class="sort-arrow">↕</span></th>
+                  <th onclick="sortTable('countryTable',2)">gs price <span class="sort-arrow">↕</span></th>
+                  <th onclick="sortTable('countryTable',3)">floor price <span class="sort-arrow">↕</span></th>
+                  <th onclick="sortTable('countryTable',4)">compliance framework <span class="sort-arrow">↕</span></th>
+                  <th onclick="sortTable('countryTable',5)">readiness <span class="sort-arrow">↕</span></th>
+                  <th onclick="sortTable('countryTable',6)">status <span class="sort-arrow">↕</span></th>
+                  <th>actions</th>
+                </tr>
+              </thead>
+              <tbody id="countryTableBody">
+                <!-- rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ CORPORATE DEALS ═══════════ -->
+      <div class="page" id="page-corporate-deals">
+        <div class="section-header">
+          <div class="section-header-left">
+            <div class="page-title">corporate deals</div>
+            <div class="page-subtitle">active and pending enterprise agreements</div>
+          </div>
+          <button class="btn-add" onclick="openDealModal()">+ add deal</button>
+        </div>
+
+        <div class="deals-grid" id="dealsGrid">
+          <!-- Deals rendered by JS -->
+        </div>
+      </div>
+
+      <!-- ═══════════ VOLUME TIERS ═══════════ -->
+      <div class="page" id="page-volume-tiers">
+        <div class="page-title">volume tiers</div>
+        <div class="page-subtitle">tiered pricing structure based on annual gs volume</div>
+
+        <div class="tiers-layout">
+          <div class="table-container">
+            <div class="table-header"><h3>pricing tiers</h3></div>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>tier</th>
+                    <th>volume range</th>
+                    <th>price/gs</th>
+                    <th>discount</th>
+                    <th>description</th>
+                    <th>actions</th>
+                  </tr>
+                </thead>
+                <tbody id="tiersTableBody">
+                  <!-- rendered by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="chart-card">
+            <h3>deals by tier</h3>
+            <div class="donut-container"><canvas id="chartTierDonut"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ GS PRICING ═══════════ -->
+      <div class="page" id="page-gs-pricing">
+        <div class="page-title">gs pricing</div>
+        <div class="page-subtitle">mgs commercial pricing — entirely mgs's domain</div>
+
+        <div class="pricing-grid" id="pricingGrid">
+          <!-- rendered by JS -->
+        </div>
+      </div>
+
+      <!-- ═══════════ EQUIVALENCE ENGINE ═══════════ -->
+      <div class="page" id="page-equivalence-engine">
+        <div class="page-title">equivalence engine</div>
+        <div class="page-subtitle">multi-dimensional gs value model — translating environmental impact into green squares</div>
+
+        <div class="eq-layout">
+          <div class="eq-card">
+            <h3>savanna case study — value composition</h3>
+            <div class="stacked-bar-container" id="eqBarContainer">
+              <!-- rendered by JS -->
+            </div>
+          </div>
+          <div class="eq-card">
+            <h3>value composition — doughnut</h3>
+            <div class="donut-container"><canvas id="chartEquivDonut"></canvas></div>
+          </div>
+        </div>
+
+        <div class="value-floor-box">
+          <h4>⚠️ the value floor</h4>
+          <p>minimum 10% of any gs unit's value must come from verified carbon reduction. this rule is absolute and non-negotiable. projects falling below this threshold are automatically rejected by the equivalence engine regardless of total value score.</p>
+        </div>
+      </div>
+
+      <!-- ═══════════ VALUE PROTECTION ═══════════ -->
+      <div class="page" id="page-value-protection">
+        <div class="page-title">value protection</div>
+        <div class="page-subtitle">scoring framework to safeguard the integrity of every green square</div>
+
+        <div class="vp-grid">
+          <div class="vp-card">
+            <h3>scoring dimensions</h3>
+            <div id="vpDimensions">
+              <!-- rendered by JS -->
+            </div>
+          </div>
+          <div class="vp-card">
+            <h3>threshold bands</h3>
+            <div class="threshold-bands">
+              <div class="band-item" style="background:rgba(106,176,35,0.08)"><div class="band-dot" style="background:#2d7a0e"></div><span class="band-range">80–100</span><span class="band-label">auto-approved — meets all criteria</span></div>
+              <div class="band-item" style="background:rgba(230,168,23,0.08)"><div class="band-dot" style="background:#e6a817"></div><span class="band-range">60–79</span><span class="band-label">flagged — manual review required</span></div>
+              <div class="band-item" style="background:rgba(255,140,0,0.06)"><div class="band-dot" style="background:#ff8c00"></div><span class="band-range">40–59</span><span class="band-label">compliance required — remediation needed</span></div>
+              <div class="band-item" style="background:rgba(220,53,69,0.06)"><div class="band-dot" style="background:#dc3545"></div><span class="band-range">0–39</span><span class="band-label">rejected — does not meet minimum standards</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cardinal-rule-box">
+          <h4>🛡️ cardinal rule</h4>
+          <p>no project can be allowed if it undermines the principle of the value of a green square</p>
+        </div>
+
+        <div class="table-container" style="margin-top:16px">
+          <div class="table-header"><h3>hard floors</h3></div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th></th><th>floor</th><th>description</th><th>enforcement</th></tr></thead>
+              <tbody>
+                <tr><td>🌐</td><td><strong>global gs value floor</strong></td><td>minimum value per gs unit across all markets</td><td>automatic</td></tr>
+                <tr><td>🏳️</td><td><strong>country price floors</strong></td><td>jurisdiction-specific minimum pricing</td><td>automatic</td></tr>
+                <tr><td>🔥</td><td><strong>carbon composition floor</strong></td><td>minimum 10% carbon component in any gs</td><td>automatic · absolute</td></tr>
+                <tr><td>✅</td><td><strong>verification floor</strong></td><td>level 1 deimos verification minimum</td><td>automatic</td></tr>
+                <tr><td>⚖️</td><td><strong>DNSH floor</strong></td><td>do no significant harm assessment required</td><td>manual review</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ DEAL SCORING ═══════════ -->
+      <div class="page" id="page-deal-scoring">
+        <div class="page-title">deal scoring</div>
+        <div class="page-subtitle">automated scoring engine for deal assessment and approval routing</div>
+
+        <div class="scoring-section">
+          <h3>scoring model</h3>
+          <p style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:16px">
+            every deal is scored across six dimensions weighted by commercial and integrity priorities. deals scoring 80+ are auto-approved. deals 60–79 require manual review. deals below 60 trigger compliance workflows.
+          </p>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+            <div style="padding:14px;background:var(--bg-surface);border-radius:var(--radius-sm)">
+              <div style="font-size:11px;color:var(--text-faint);margin-bottom:4px">volume fit</div>
+              <div style="font-size:18px;font-weight:700;color:var(--text-primary)">20%</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px">alignment with tier capacity</div>
+            </div>
+            <div style="padding:14px;background:var(--bg-surface);border-radius:var(--radius-sm)">
+              <div style="font-size:11px;color:var(--text-faint);margin-bottom:4px">price compliance</div>
+              <div style="font-size:18px;font-weight:700;color:var(--text-primary)">20%</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px">within tier pricing bands</div>
+            </div>
+            <div style="padding:14px;background:var(--bg-surface);border-radius:var(--radius-sm)">
+              <div style="font-size:11px;color:var(--text-faint);margin-bottom:4px">brand quality</div>
+              <div style="font-size:18px;font-weight:700;color:var(--text-primary)">20%</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px">reputational risk assessment</div>
+            </div>
+            <div style="padding:14px;background:var(--bg-surface);border-radius:var(--radius-sm)">
+              <div style="font-size:11px;color:var(--text-faint);margin-bottom:4px">country readiness</div>
+              <div style="font-size:18px;font-weight:700;color:var(--text-primary)">15%</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px">jurisdiction regulatory score</div>
+            </div>
+            <div style="padding:14px;background:var(--bg-surface);border-radius:var(--radius-sm)">
+              <div style="font-size:11px;color:var(--text-faint);margin-bottom:4px">strategic value</div>
+              <div style="font-size:18px;font-weight:700;color:var(--text-primary)">15%</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px">market expansion potential</div>
+            </div>
+            <div style="padding:14px;background:var(--bg-surface);border-radius:var(--radius-sm)">
+              <div style="font-size:11px;color:var(--text-faint);margin-bottom:4px">contract terms</div>
+              <div style="font-size:18px;font-weight:700;color:var(--text-primary)">10%</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px">payment terms, duration, SLA</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="scoring-section">
+          <h3>recent scoring results</h3>
+          <table>
+            <thead><tr><th>deal</th><th>volume fit</th><th>price</th><th>brand</th><th>country</th><th>strategic</th><th>terms</th><th>total</th><th>outcome</th></tr></thead>
+            <tbody>
+              <tr><td style="font-weight:600">Tesco UK</td><td>19</td><td>18</td><td>19</td><td>14</td><td>13</td><td>8</td><td style="font-weight:700;color:var(--green-primary)">91</td><td><span class="status-pill active">auto-approved</span></td></tr>
+              <tr><td style="font-weight:600">Nestlé Global</td><td>17</td><td>18</td><td>18</td><td>13</td><td>14</td><td>7</td><td style="font-weight:700;color:var(--green-primary)">87</td><td><span class="status-pill active">auto-approved</span></td></tr>
+              <tr><td style="font-weight:600">NTUC Singapore</td><td>16</td><td>16</td><td>17</td><td>12</td><td>11</td><td>7</td><td style="font-weight:700;color:var(--amber)">79</td><td><span class="status-pill pending">flagged</span></td></tr>
+              <tr><td style="font-weight:600">Carrefour EU</td><td>18</td><td>17</td><td>16</td><td>14</td><td>12</td><td>6</td><td style="font-weight:700;color:var(--green-primary)">83</td><td><span class="status-pill pending">pending</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══════════ C2050 FEED ═══════════ -->
+      <div class="page" id="page-c2050-feed">
+        <div class="page-title">c2050 feed</div>
+        <div class="page-subtitle">inbound data from c2050 — the authoritative verification source</div>
+
+        <div class="feed-status">
+          <div class="feed-status-dot"></div>
+          <span class="feed-status-text">connected — all streams operational</span>
+          <span class="feed-status-time">last sync: 2 minutes ago</span>
+        </div>
+
+        <div class="table-container">
+          <div class="table-header"><h3>data streams</h3></div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>stream</th><th>frequency</th><th>source</th><th>status</th><th>last update</th><th>actions</th></tr></thead>
+              <tbody id="streamsTableBody">
+                <!-- rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="feed-note">
+          c2050 is the authoritative verification source. mgs receives verified project and country data. outbound: contract confirmations only.
+        </div>
+      </div>
+
+      <!-- ═══════════ CARBON MARKETS ═══════════ -->
+      <div class="page" id="page-carbon-markets">
+        <div class="section-header">
+          <div class="section-header-left">
+            <div class="page-title">carbon markets</div>
+            <div class="page-subtitle">live compliance carbon prices across monitored jurisdictions</div>
+          </div>
+          <button class="btn-add" onclick="openMarketModal()">+ add market</button>
+        </div>
+
+        <div class="market-grid" id="marketGrid">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- ═══════════ REGULATORY UPDATES ═══════════ -->
+      <div class="page" id="page-regulatory-updates">
+        <div class="section-header">
+          <div class="section-header-left">
+            <div class="page-title">regulatory updates</div>
+            <div class="page-subtitle">latest regulatory developments affecting gs issuance and compliance</div>
+          </div>
+          <button class="btn-add" onclick="openRegulatoryModal()">+ add update</button>
+        </div>
+
+        <div class="reg-grid" id="regGrid">
+          <!-- rendered by JS -->
+        </div>
+      </div>
+
+      <!-- ═══════════ CHANGE LOG ═══════════ -->
+      <div class="page" id="page-change-log">
+        <div class="page-title">change log</div>
+        <div class="page-subtitle">audit trail of all parameter changes and system events</div>
+
+        <div class="chart-card">
+          <div class="timeline" id="changelogTimeline">
+            <!-- rendered by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ APPROVAL QUEUE ═══════════ -->
+      <div class="page" id="page-approval-queue">
+        <div class="section-header">
+          <div class="section-header-left">
+            <div class="page-title">approval queue</div>
+            <div class="page-subtitle" id="approvalSubtitle">loading...</div>
+          </div>
+          <button class="btn-add" onclick="openApprovalModal()">+ add approval</button>
+        </div>
+
+        <div class="approval-grid" id="approvalGrid">
+          <!-- rendered by JS -->
+        </div>
+      </div>
+
+    </main>
+
+    <footer class="main-footer">
+      <span>gs master control panel v2.4.1 · © 2026 my green squares</span>
+      <a href="https://www.perplexity.ai/computer" target="_blank" rel="noopener noreferrer">created with perplexity computer</a>
+    </footer>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="crudModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 id="modalTitle"></h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div id="modalBody"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">cancel</button>
+      <button class="btn-save" id="modalSave">save</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ═══════════════════════════════════════════════════
+     JAVASCRIPT
+     ═══════════════════════════════════════════════════ -->
+<script>
+// ── API BASE ──
+const API = "__PORT_8000__".startsWith("__") ? "http://localhost:8000" : "__PORT_8000__";
+
+// ── TOAST SYSTEM ──
+function showToast(msg, type = 'success') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => { if (t.parentNode) t.remove(); }, 3200);
+}
+
+// ── MODAL SYSTEM ──
+let _modalSaveFn = null;
+function openModal(title, bodyHtml, saveFn) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = bodyHtml;
+  _modalSaveFn = saveFn;
+  document.getElementById('modalSave').onclick = () => { if (_modalSaveFn) _modalSaveFn(); };
+  document.getElementById('crudModal').style.display = '';
+}
+function closeModal() {
+  document.getElementById('crudModal').style.display = 'none';
+  _modalSaveFn = null;
+}
+
+// ── GENERIC API HELPERS ──
+async function apiFetch(path) {
+  const r = await fetch(API + path);
+  if (!r.ok) throw new Error('api error ' + r.status);
+  return r.json();
+}
+async function apiPost(path, body) {
+  const r = await fetch(API + path, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  if (!r.ok) { const e = await r.text(); throw new Error(e); }
+  return r.json();
+}
+async function apiPut(path, body) {
+  const r = await fetch(API + path, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  if (!r.ok) { const e = await r.text(); throw new Error(e); }
+  return r.json();
+}
+async function apiDelete(path) {
+  const r = await fetch(API + path, { method: 'DELETE' });
+  if (!r.ok) { const e = await r.text(); throw new Error(e); }
+  return r.json();
+}
+
+// ── NAVIGATION ──
+const navItems = document.querySelectorAll('.nav-item[data-page]');
+const pages = document.querySelectorAll('.page');
+const headerTitle = document.getElementById('headerTitle');
+const headerBreadcrumb = document.getElementById('headerBreadcrumb');
+
+const breadcrumbMap = {
+  'dashboard': 'overview',
+  'system-status': 'overview',
+  'country-defaults': 'commercial',
+  'corporate-deals': 'commercial',
+  'volume-tiers': 'commercial',
+  'gs-pricing': 'commercial',
+  'equivalence-engine': 'engines',
+  'value-protection': 'engines',
+  'deal-scoring': 'engines',
+  'c2050-feed': 'data feeds',
+  'carbon-markets': 'data feeds',
+  'regulatory-updates': 'data feeds',
+  'change-log': 'audit',
+  'approval-queue': 'audit'
+};
+
+const pageLoaders = {
+  'dashboard': loadDashboard,
+  'system-status': loadSystemStatus,
+  'country-defaults': loadCountries,
+  'corporate-deals': loadDeals,
+  'volume-tiers': loadTiers,
+  'gs-pricing': loadPricing,
+  'equivalence-engine': loadEquivalence,
+  'value-protection': loadValueProtection,
+  'c2050-feed': loadStreams,
+  'carbon-markets': loadMarkets,
+  'regulatory-updates': loadRegulatory,
+  'change-log': loadChangelog,
+  'approval-queue': loadApprovals
+};
+
+navItems.forEach(item => {
+  item.addEventListener('click', () => {
+    const pageId = item.dataset.page;
+    navItems.forEach(n => n.classList.remove('active'));
+    item.classList.add('active');
+    pages.forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + pageId).classList.add('active');
+    headerTitle.textContent = item.textContent.trim();
+    headerBreadcrumb.textContent = breadcrumbMap[pageId] || 'overview';
+    document.getElementById('sidebar').classList.remove('open');
+    if (pageLoaders[pageId]) pageLoaders[pageId]();
+  });
+});
+
+// ── DARK MODE ──
+const themeToggle = document.getElementById('themeToggle');
+let darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+if (darkMode) document.documentElement.setAttribute('data-theme', 'dark');
+updateThemeIcon();
+
+themeToggle.addEventListener('click', () => {
+  darkMode = !darkMode;
+  document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : '');
+  updateThemeIcon();
+  destroyAllCharts();
+  requestAnimationFrame(() => {
+    const activePage = document.querySelector('.page.active');
+    if (activePage.id === 'page-dashboard') initDashboardCharts();
+    if (activePage.id === 'page-volume-tiers') initTierChart();
+    if (activePage.id === 'page-equivalence-engine') initEquivChart();
+  });
+});
+
+function updateThemeIcon() {
+  themeToggle.textContent = darkMode ? '☀️' : '🌙';
+}
+function getChartTextColor() { return darkMode ? '#c8d8be' : '#333333'; }
+function getChartGridColor() { return darkMode ? 'rgba(45,68,34,0.5)' : 'rgba(212,221,200,0.5)'; }
+
+// ── CHART INSTANCES ──
+let chartIssuance, chartRevenue, chartTierDonut, chartEquivDonut;
+function destroyAllCharts() {
+  [chartIssuance, chartRevenue, chartTierDonut, chartEquivDonut].forEach(c => { if (c) c.destroy(); });
+  chartIssuance = chartRevenue = chartTierDonut = chartEquivDonut = null;
+}
+
+function initDashboardCharts() {
+  if (chartIssuance) return;
+  const months = ['apr','may','jun','jul','aug','sep','oct','nov','dec','jan','feb','mar'];
+  const issuanceData = [52,58,61,65,68,72,74,78,82,86,90,94];
+  chartIssuance = new Chart(document.getElementById('chartIssuance'), {
+    type: 'bar',
+    data: { labels: months, datasets: [{ data: issuanceData, backgroundColor: '#6ab023', borderRadius: 4, borderSkipped: false, barPercentage: 0.7 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: darkMode ? '#1c2c16' : '#fff', titleColor: getChartTextColor(), bodyColor: getChartTextColor(), borderColor: darkMode ? '#2d4422' : '#d4ddc8', borderWidth: 1, padding: 10, cornerRadius: 6, callbacks: { label: ctx => ctx.raw + 'M GS' } } }, scales: { x: { grid: { display: false }, ticks: { color: getChartTextColor(), font: { size: 11, family: 'DM Sans' } } }, y: { grid: { color: getChartGridColor() }, ticks: { color: getChartTextColor(), font: { size: 11, family: 'DM Sans' }, callback: v => v + 'M' }, border: { display: false } } } }
+  });
+  const countries = ['UK', 'EU', 'Australia', 'Singapore', 'US/CA', 'Canada', 'Switzerland'];
+  const revenue = [1420, 1260, 840, 620, 510, 380, 170];
+  chartRevenue = new Chart(document.getElementById('chartRevenue'), {
+    type: 'bar',
+    data: { labels: countries, datasets: [{ data: revenue, backgroundColor: ['#4a7a18','#6ab023','#8cc63f','#a5d465','#b8d98e','#cce4b0','#dff0d0'], borderRadius: 4, borderSkipped: false, barPercentage: 0.7 }] },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, layout: { padding: { left: 10 } }, plugins: { legend: { display: false }, tooltip: { backgroundColor: darkMode ? '#1c2c16' : '#fff', titleColor: getChartTextColor(), bodyColor: getChartTextColor(), borderColor: darkMode ? '#2d4422' : '#d4ddc8', borderWidth: 1, padding: 10, cornerRadius: 6, callbacks: { label: ctx => '£' + ctx.raw + 'K' } } }, scales: { x: { grid: { color: getChartGridColor() }, ticks: { color: getChartTextColor(), font: { size: 11, family: 'DM Sans' }, callback: v => '£' + v + 'K' }, border: { display: false } }, y: { grid: { display: false }, ticks: { color: getChartTextColor(), font: { size: 11, family: 'DM Sans' }, padding: 4 } } } }
+  });
+}
+
+function initTierChart() {
+  if (chartTierDonut) return;
+  chartTierDonut = new Chart(document.getElementById('chartTierDonut'), {
+    type: 'doughnut',
+    data: { labels: ['SME', 'mid-tier', 'major', 'enterprise'], datasets: [{ data: [8, 9, 4, 2], backgroundColor: ['#b8d98e','#8cc63f','#6ab023','#4a7a18'], borderWidth: 2, borderColor: darkMode ? '#1c2c16' : '#ffffff' }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'bottom', labels: { color: getChartTextColor(), font: { size: 11, family: 'DM Sans' }, padding: 16 } } } }
+  });
+}
+
+function initEquivChart() {
+  if (chartEquivDonut) return;
+  chartEquivDonut = new Chart(document.getElementById('chartEquivDonut'), {
+    type: 'doughnut',
+    data: { labels: ['carbon (32%)', 'biodiversity (60%)', 'animal welfare (3%)', 'water/soil (5%)'], datasets: [{ data: [150, 282, 15.6, 25], backgroundColor: ['#4a7a18','#6ab023','#8cc63f','#b8d98e'], borderWidth: 2, borderColor: darkMode ? '#1c2c16' : '#ffffff' }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '55%', plugins: { legend: { position: 'bottom', labels: { color: getChartTextColor(), font: { size: 11, family: 'DM Sans' }, padding: 12 } }, tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.raw + 'M GS' } } } }
+  });
+}
+
+// ═════════════ DASHBOARD ═════════════
+async function loadDashboard() {
+  try {
+    const data = await apiFetch('/api/dashboard');
+    document.getElementById('kpiGrid').innerHTML = `
+      <div class="kpi-card"><div class="kpi-label">total gs issued</div><div class="kpi-value">${data.total_gs_issued || '—'}</div><div class="kpi-delta up">↑ 12.4%</div></div>
+      <div class="kpi-card"><div class="kpi-label">active countries</div><div class="kpi-value">${data.countries_active || 0}/${data.countries_total || 0}</div><div class="kpi-delta neutral">${data.approvals_pending || 0} pending approval</div></div>
+      <div class="kpi-card"><div class="kpi-label">active deals</div><div class="kpi-value">${data.deals_active || 0}</div><div class="kpi-delta up">${data.approvals_pending || 0} pending approval</div></div>
+      <div class="kpi-card"><div class="kpi-label">avg value protection score</div><div class="kpi-value">${data.avg_value_protection || '—'}</div><div class="kpi-delta up">↑ 2.1 pts</div></div>
+    `;
+  } catch(e) { console.error('dashboard load failed', e); }
+  destroyAllCharts();
+  initDashboardCharts();
+  // Load recent activity from changelog
+  try {
+    const logs = await apiFetch('/api/changelog');
+    const feed = document.getElementById('activityFeed');
+    const colors = ['var(--green-primary)', 'var(--green-bright)', 'var(--amber)', 'var(--green-primary)', 'var(--blue)'];
+    feed.innerHTML = (logs.slice(0, 5)).map((l, i) => `
+      <div class="activity-item">
+        <div class="activity-dot" style="background:${colors[i % colors.length]}"></div>
+        <div>
+          <div class="activity-text">${l.detail || l.action || ''}</div>
+          <div class="activity-time">${l.created_at || ''}</div>
+        </div>
+      </div>
+    `).join('');
+    if (!logs.length) feed.innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:10px 0">no recent activity</div>';
+  } catch(e) { console.error('activity load failed', e); }
+}
+
+// ═════════════ SYSTEM STATUS ═════════════
+async function loadSystemStatus() {
+  try {
+    const items = await apiFetch('/api/system-status');
+    // Render as cards in groups of 3
+    const chunkSize = Math.ceil(items.length / 3);
+    const chunks = [];
+    for (let i = 0; i < items.length; i += chunkSize) chunks.push(items.slice(i, i + chunkSize));
+    const icons = ['🟢', '📡', '📊'];
+    const titles = ['core services', 'data feeds', 'performance'];
+    document.getElementById('statusGrid').innerHTML = chunks.map((chunk, ci) => `
+      <div class="status-card">
+        <h4>${icons[ci] || '⚙️'} ${titles[ci] || 'services'}</h4>
+        ${chunk.map(s => {
+          const isOk = s.status === 'operational' || s.status === 'live' || s.status === 'connected';
+          return `<div class="status-row">
+            <span class="status-row-label">${s.service || s.name || ''}</span>
+            <span class="status-row-value ${isOk ? 'status-ok' : ''}">● ${s.status || ''}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    `).join('');
+  } catch(e) { console.error('system status load failed', e); }
+}
+
+// ═════════════ COUNTRIES ═════════════
+let _countriesData = [];
+async function loadCountries() {
+  try {
+    _countriesData = await apiFetch('/api/countries');
+    renderCountries(_countriesData);
+  } catch(e) { console.error('countries load failed', e); }
+}
+
+function renderCountries(list) {
+  document.getElementById('countryCount').textContent = list.length + ' jurisdictions';
+  const tbody = document.getElementById('countryTableBody');
+  tbody.innerHTML = list.map(c => {
+    const statusClass = (c.status || '').toLowerCase().replace(/\s+/g,'-');
+    return `<tr>
+      <td>${c.flag || ''} ${c.name}</td>
+      <td>${c.carbon_reference || ''}</td>
+      <td>${c.gs_price || ''}</td>
+      <td>${c.floor_price || ''}</td>
+      <td>${c.compliance_framework || ''}</td>
+      <td>${c.readiness || ''}</td>
+      <td><span class="status-pill ${statusClass}">${c.status || ''}</span></td>
+      <td><div class="row-actions">
+        <button class="btn-icon edit-btn" onclick="openCountryModal(${c.id})" title="edit">✎</button>
+        <button class="btn-icon delete-btn" onclick="deleteCountry(${c.id})" title="delete">✕</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function openCountryModal(id) {
+  const c = id ? _countriesData.find(x => x.id === id) : {};
+  const title = id ? 'edit country' : 'add country';
+  const html = `
+    <div class="modal-form-group"><label>name</label><input id="mf_name" value="${c.name||''}"></div>
+    <div class="modal-form-group"><label>flag emoji</label><input id="mf_flag" value="${c.flag||''}"></div>
+    <div class="modal-form-group"><label>carbon reference</label><input id="mf_carbon" value="${c.carbon_reference||''}"></div>
+    <div class="modal-form-group"><label>gs price</label><input id="mf_gs" value="${c.gs_price||''}"></div>
+    <div class="modal-form-group"><label>floor price</label><input id="mf_floor" value="${c.floor_price||''}"></div>
+    <div class="modal-form-group"><label>compliance framework</label><input id="mf_comp" value="${c.compliance_framework||''}"></div>
+    <div class="modal-form-group"><label>readiness</label><input id="mf_ready" type="number" value="${c.readiness||''}"></div>
+    <div class="modal-form-group"><label>status</label><select id="mf_status"><option ${c.status==='active'?'selected':''}>active</option><option ${c.status==='pending'?'selected':''}>pending</option><option ${c.status==='planned'?'selected':''}>planned</option></select></div>
+  `;
+  openModal(title, html, async () => {
+    const body = { name: document.getElementById('mf_name').value, flag: document.getElementById('mf_flag').value, carbon_reference: document.getElementById('mf_carbon').value, gs_price: document.getElementById('mf_gs').value, floor_price: document.getElementById('mf_floor').value, compliance_framework: document.getElementById('mf_comp').value, readiness: parseInt(document.getElementById('mf_ready').value) || 0, status: document.getElementById('mf_status').value };
+    try {
+      if (id) { await apiPut('/api/countries/' + id, body); showToast('country updated'); }
+      else { await apiPost('/api/countries', body); showToast('country created'); }
+      closeModal(); loadCountries(); loadDashboard();
+    } catch(e) { showToast('error: ' + e.message, 'error'); }
+  });
+}
+
+async function deleteCountry(id) {
+  if (!confirm('delete this country?')) return;
+  try { await apiDelete('/api/countries/' + id); showToast('country deleted'); loadCountries(); loadDashboard(); }
+  catch(e) { showToast('error: ' + e.message, 'error'); }
+}
+
+// ═════════════ DEALS ═════════════
+let _dealsData = [];
+async function loadDeals() {
+  try { _dealsData = await apiFetch('/api/deals'); renderDeals(); }
+  catch(e) { console.error('deals load failed', e); }
+}
+
+function renderDeals() {
+  const grid = document.getElementById('dealsGrid');
+  grid.innerHTML = _dealsData.map(d => {
+    const statusClass = d.status === 'active' ? 'active' : 'pending';
+    const scorePct = (d.score || 0) + '%';
+    return `
+      <div class="deal-card">
+        <div class="card-actions">
+          <button class="btn-icon edit-btn" onclick="openDealModal(${d.id})" title="edit">✎</button>
+          <button class="btn-icon delete-btn" onclick="deleteDeal(${d.id})" title="delete">✕</button>
+        </div>
+        <div class="deal-card-head">
+          <span class="deal-name">${d.name}</span>
+          <span class="deal-flag">${d.flag || ''}</span>
+        </div>
+        <div class="deal-meta">
+          <div class="deal-meta-item"><label>volume/yr</label><span>${d.volume || ''} GS</span></div>
+          <div class="deal-meta-item"><label>price/gs</label><span>${d.price || ''}</span></div>
+          <div class="deal-meta-item"><label>country</label><span>${d.country || ''}</span></div>
+          <div class="deal-meta-item"><label>maturity</label><span>level ${d.level || ''}</span></div>
+        </div>
+        <div class="deal-bottom">
+          <span class="status-pill ${statusClass}">${d.status || ''}</span>
+          <span class="maturity-badge">L${d.level || ''}</span>
+          <span class="deal-type-tag">${d.type || ''}</span>
+          <span class="score-gauge"><span class="gauge-bar"><span class="gauge-fill" style="width:${scorePct}"></span></span>${d.score || ''}</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function openDealModal(id) {
+  const d = id ? _dealsData.find(x => x.id === id) : {};
+  const title = id ? 'edit deal' : 'add deal';
+  const html = `
+    <div class="modal-form-group"><label>name</label><input id="mf_dname" value="${d.name||''}"></div>
+    <div class="modal-form-group"><label>country</label><input id="mf_dcountry" value="${d.country||''}"></div>
+    <div class="modal-form-group"><label>flag emoji</label><input id="mf_dflag" value="${d.flag||''}"></div>
+    <div class="modal-form-group"><label>volume</label><input id="mf_dvolume" value="${d.volume||''}"></div>
+    <div class="modal-form-group"><label>price</label><input id="mf_dprice" value="${d.price||''}"></div>
+    <div class="modal-form-group"><label>maturity level</label><input id="mf_dlevel" type="number" value="${d.level||''}"></div>
+    <div class="modal-form-group"><label>score</label><input id="mf_dscore" type="number" value="${d.score||''}"></div>
+    <div class="modal-form-group"><label>status</label><select id="mf_dstatus"><option ${d.status==='active'?'selected':''}>active</option><option ${d.status==='pending review'?'selected':''}>pending review</option><option ${d.status==='pending approval'?'selected':''}>pending approval</option></select></div>
+    <div class="modal-form-group"><label>type</label><select id="mf_dtype"><option ${d.type==='corporate'?'selected':''}>corporate</option><option ${d.type==='cause-based'?'selected':''}>cause-based</option></select></div>
+    <div class="modal-form-group"><label>notes</label><textarea id="mf_dnotes">${d.notes||''}</textarea></div>
+  `;
+  openModal(title, html, async () => {
+    const body = { name: document.getElementById('mf_dname').value, country: document.getElementById('mf_dcountry').value, flag: document.getElementById('mf_dflag').value, volume: document.getElementById('mf_dvolume').value, price: document.getElementById('mf_dprice').value, level: parseInt(document.getElementById('mf_dlevel').value)||0, score: parseInt(document.getElementById('mf_dscore').value)||0, status: document.getElementById('mf_dstatus').value, type: document.getElementById('mf_dtype').value, notes: document.getElementById('mf_dnotes').value };
+    try {
+      if (id) { await apiPut('/api/deals/' + id, body); showToast('deal updated'); }
+      else { await apiPost('/api/deals', body); showToast('deal created'); }
+      closeModal(); loadDeals(); loadDashboard();
+    } catch(e) { showToast('error: ' + e.message, 'error'); }
+  });
+}
+
+async function deleteDeal(id) {
+  if (!confirm('delete this deal?')) return;
+  try { await apiDelete('/api/deals/' + id); showToast('deal deleted'); loadDeals(); loadDashboard(); }
+  catch(e) { showToast('error: ' + e.message, 'error'); }
+}
+
+// ═════════════ MARKETS ═════════════
+let _marketsData = [];
+async function loadMarkets() {
+  try { _marketsData = await apiFetch('/api/markets'); renderMarkets(); }
+  catch(e) { console.error('markets load failed', e); }
+}
+
+function renderMarkets() {
+  const grid = document.getElementById('marketGrid');
+  grid.innerHTML = _marketsData.map(m => `
+    <div class="market-card">
+      <div class="card-actions">
+        <button class="btn-icon edit-btn" onclick="openMarketModal(${m.id})" title="edit">✎</button>
+        <button class="btn-icon delete-btn" onclick="deleteMarket(${m.id})" title="delete">✕</button>
+      </div>
+      <div class="market-name">${m.name}</div>
+      <div class="market-price">${m.price}</div>
+      <div class="market-delta ${m.trend_up ? 'up' : 'down'}">${m.trend_up ? '↑' : '↓'} ${m.delta}</div>
+    </div>
+  `).join('');
+}
+
+function openMarketModal(id) {
+  const m = id ? _marketsData.find(x => x.id === id) : {};
+  const title = id ? 'edit market' : 'add market';
+  const html = `
+    <div class="modal-form-group"><label>name</label><input id="mf_mname" value="${m.name||''}"></div>
+    <div class="modal-form-group"><label>price</label><input id="mf_mprice" value="${m.price||''}"></div>
+    <div class="modal-form-group"><label>delta</label><input id="mf_mdelta" value="${m.delta||''}"></div>
+    <div class="modal-form-group"><label>trend up</label><select id="mf_mtrend"><option value="true" ${m.trend_up!==false?'selected':''}>up</option><option value="false" ${m.trend_up===false?'selected':''}>down</option></select></div>
+  `;
+  openModal(title, html, async () => {
+    const body = { name: document.getElementById('mf_mname').value, price: document.getElementById('mf_mprice').value, delta: document.getElementById('mf_mdelta').value, trend_up: document.getElementById('mf_mtrend').value === 'true' };
+    try {
+      if (id) { await apiPut('/api/markets/' + id, body); showToast('market updated'); }
+      else { await apiPost('/api/markets', body); showToast('market created'); }
+      closeModal(); loadMarkets();
+    } catch(e) { showToast('error: ' + e.message, 'error'); }
+  });
+}
+
+async function deleteMarket(id) {
+  if (!confirm('delete this market?')) return;
+  try { await apiDelete('/api/markets/' + id); showToast('market deleted'); loadMarkets(); }
+  catch(e) { showToast('error: ' + e.message, 'error'); }
+}
+
+// ═════════════ VOLUME TIERS ═════════════
+let _tiersData = [];
+async function loadTiers() {
+  try {
+    _tiersData = await apiFetch('/api/tiers');
+    renderTiers();
+    destroyAllCharts(); chartTierDonut = null; initTierChart();
+  } catch(e) { console.error('tiers load failed', e); }
+}
+
+function renderTiers() {
+  const tbody = document.getElementById('tiersTableBody');
+  tbody.innerHTML = _tiersData.map(t => `<tr>
+    <td><span style="font-weight:600;color:var(--text-primary)">${t.name || ''}</span></td>
+    <td>${t.threshold || ''}</td>
+    <td>${t.price_per_gs || ''}</td>
+    <td>${t.discount || ''}</td>
+    <td>${t.description || ''}</td>
+    <td><div class="row-actions"><button class="btn-icon edit-btn" onclick="openTierModal(${t.id})" title="edit">✎</button></div></td>
+  </tr>`).join('');
+}
+
+function openTierModal(id) {
+  const t = _tiersData.find(x => x.id === id) || {};
+  const html = `
+    <div class="modal-form-group"><label>tier name</label><input id="mf_ttier" value="${t.name||''}"></div>
+    <div class="modal-form-group"><label>threshold</label><input id="mf_tvol" value="${t.threshold||''}"></div>
+    <div class="modal-form-group"><label>price/gs</label><input id="mf_tprice" value="${t.price_per_gs||''}"></div>
+    <div class="modal-form-group"><label>discount</label><input id="mf_tdisc" value="${t.discount||''}"></div>
+    <div class="modal-form-group"><label>description</label><textarea id="mf_tdesc">${t.description||''}</textarea></div>
+  `;
+  openModal('edit tier', html, async () => {
+    const body = { name: document.getElementById('mf_ttier').value, threshold: document.getElementById('mf_tvol').value, price_per_gs: document.getElementById('mf_tprice').value, discount: document.getElementById('mf_tdisc').value, description: document.getElementById('mf_tdesc').value };
+    try { await apiPut('/api/tiers/' + id, body); showToast('tier updated'); closeModal(); loadTiers(); }
+    catch(e) { showToast('error: ' + e.message, 'error'); }
+  });
+}
+
+// ═════════════ GS PRICING ═════════════
+let _pricingData = [];
+async function loadPricing() {
+  try { _pricingData = await apiFetch('/api/pricing'); renderPricing(); }
+  catch(e) { console.error('pricing load failed', e); }
+}
+
+function renderPricing() {
+  document.getElementById('pricingGrid').innerHTML = _pricingData.map(p => `
+    <div class="pricing-card">
+      <div class="card-actions"><button class="btn-icon edit-btn" onclick="openPricingModal(${p.id})" title="edit">✎</button></div>
+      <h4>${p.tier_name || ''}</h4>
+      <div class="price-big">${p.price_per_gs || ''}</div>
+      <div class="price-label">per green square · ${p.volume_range || ''}</div>
+      <div style="margin-top:12px;font-size:12px;color:var(--text-muted);line-height:1.6">${p.description || ''}</div>
+    </div>
+  `).join('');
+}
+
+function openPricingModal(id) {
+  const p = _pricingData.find(x => x.id === id) || {};
+  const html = `
+    <div class="modal-form-group"><label>tier name</label><input id="mf_pname" value="${p.tier_name||''}"></div>
+    <div class="modal-form-group"><label>price per gs</label><input id="mf_pprice" value="${p.price_per_gs||''}"></div>
+    <div class="modal-form-group"><label>volume range</label><input id="mf_plabel" value="${p.volume_range||''}"></div>
+    <div class="modal-form-group"><label>discount %</label><input id="mf_pdisc" value="${p.discount_pct||''}"></div>
+    <div class="modal-form-group"><label>description</label><textarea id="mf_pdesc">${p.description||''}</textarea></div>
+  `;
+  openModal('edit pricing', html, async () => {
+    const body = { tier_name: document.getElementById('mf_pname').value, price_per_gs: document.getElementById('mf_pprice').value, volume_range: document.getElementById('mf_plabel').value, discount_pct: document.getElementById('mf_pdisc').value, description: document.getElementById('mf_pdesc').value };
+    try { await apiPut('/api/pricing/' + id, body); showToast('pricing updated'); closeModal(); loadPricing(); }
+    catch(e) { showToast('error: ' + e.message, 'error'); }
+  });
+}
+
+// ═════════════ EQUIVALENCE ENGINE ═════════════
+let _eqData = [];
+async function loadEquivalence() {
+  try {
+    _eqData = await apiFetch('/api/equivalence');
+    renderEquivalence();
+    destroyAllCharts(); chartEquivDonut = null; initEquivChart();
+  } catch(e) { console.error('equivalence load failed', e); }
+}
+
+function renderEquivalence() {
+  const colors = ['#4a7a18','#6ab023','#8cc63f','#b8d98e','#cce4b0'];
+  const total = _eqData.reduce((s, e) => s + parseFloat(e.gs_value || 0), 0);
+  const container = document.getElementById('eqBarContainer');
+  container.innerHTML = `
+    <div class="stacked-bar">
+      ${_eqData.map((e, i) => `<div style="width:${e.percentage||0}%;background:${colors[i%colors.length]}" title="${e.dimension}: ${e.gs_value} GS (${e.percentage}%)">${parseFloat(e.percentage)>=5 ? e.percentage+'%' : ''}</div>`).join('')}
+    </div>
+    <div class="eq-legend">
+      ${_eqData.map((e, i) => `
+        <div class="eq-legend-item">
+          <div class="eq-legend-dot" style="background:${colors[i%colors.length]}"></div>
+          <span class="eq-legend-label">${e.dimension}</span>
+          <span class="eq-legend-value">${e.gs_value} GS</span>
+          <span class="eq-legend-pct">${e.percentage}%</span>
+          <button class="btn-icon edit-btn" onclick="openEqModal(${e.id})" title="edit" style="margin-left:4px">✎</button>
+        </div>
+      `).join('')}
+    </div>
+    <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:13px;font-weight:600;color:var(--text-primary)">total equivalent value</span>
+      <span style="font-size:20px;font-weight:700;color:var(--green-primary);font-variant-numeric:tabular-nums">${total.toFixed(1)}M GS</span>
+    </div>
+  `;
+}
+
+function openEqModal(id) {
+  const e = _eqData.find(x => x.id === id) || {};
+  const html = `
+    <div class="modal-form-group"><label>dimension</label><input id="mf_edim" value="${e.dimension||''}"></div>
+    <div class="modal-form-group"><label>percentage</label><input id="mf_epct" value="${e.percentage||''}"></div>
+    <div class="modal-form-group"><label>gs value</label><input id="mf_egs" value="${e.gs_value||''}"></div>
+    <div class="modal-form-group"><label>description</label><textarea id="mf_edesc">${e.description||''}</textarea></div>
+  `;
+  openModal('edit equivalence', html, async () => {
+    const body = { dimension: document.getElementById('mf_edim').value, percentage: document.getElementById('mf_epct').value, gs_value: document.getElementById('mf_egs').value, description: document.getElementById('mf_edesc').value };
+    try { await apiPut('/api/equivalence/' + id, body); showToast('equivalence updated'); closeModal(); loadEquivalence(); }
+    catch(e2) { showToast('error: ' + e2.message, 'error'); }
+  });
+}
+
+// ═════════════ VALUE PROTECTION ═════════════
+let _vpData = [];
+async function loadValueProtection() {
+  try { _vpData = await apiFetch('/api/value-protection'); renderVP(); }
+  catch(e) { console.error('vp load failed', e); }
+}
+
+function renderVP() {
+  const container = document.getElementById('vpDimensions');
+  container.innerHTML = _vpData.map(v => `
+    <div class="dimension-item">
+      <span class="dimension-label">${v.dimension}</span>
+      <div class="dimension-bar"><div class="dimension-fill" style="width:${v.weight||0}%"></div></div>
+      <span class="dimension-pct">${v.weight||0}%</span>
+      <button class="btn-icon edit-btn" onclick="openVPModal(${v.id})" title="edit" style="margin-left:4px">✎</button>
+    </div>
+  `).join('');
+}
+
+function openVPModal(id) {
+  const v = _vpData.find(x => x.id === id) || {};
+  const html = `
+    <div class="modal-form-group"><label>dimension</label><input id="mf_vdim" value="${v.dimension||''}"></div>
+    <div class="modal-form-group"><label>weight (%)</label><input id="mf_vweight" type="number" value="${v.weight||''}"></div>
+    <div class="modal-form-group"><label>description</label><textarea id="mf_vdesc">${v.description||''}</textarea></div>
+  `;
+  openModal('edit dimension', html, async () => {
+    const body = { dimension: document.getElementById('mf_vdim').value, weight: parseInt(document.getElementById('mf_vweight').value)||0, description: document.getElementById('mf_vdesc').value };
+    try { await apiPut('/api/value-protection/' + id, body); showToast('dimension updated'); closeModal(); loadValueProtection(); }
+    catch(e2) { showToast('error: ' + e2.message, 'error'); }
+  });
+}
+
+// ═════════════ C2050 STREAMS ═════════════
+let _streamsData = [];
+async function loadStreams() {
+  try { _streamsData = await apiFetch('/api/streams'); renderStreams(); }
+  catch(e) { console.error('streams load failed', e); }
+}
+
+function renderStreams() {
+  document.getElementById('streamsTableBody').innerHTML = _streamsData.map(s => {
+    const statusClass = (s.status || '').toLowerCase().replace(/[^a-z]/g, '');
+    return `<tr>
+      <td>${s.stream || s.name || ''}</td>
+      <td>${s.frequency || ''}</td>
+      <td>${s.source || ''}</td>
+      <td><span class="status-pill ${statusClass}">● ${s.status || ''}</span></td>
+      <td>${s.last_update || ''}</td>
+      <td><div class="row-actions"><button class="btn-icon edit-btn" onclick="openStreamModal(${s.id})" title="edit">✎</button></div></td>
+    </tr>`;
+  }).join('');
+}
+
+function openStreamModal(id) {
+  const s = _streamsData.find(x => x.id === id) || {};
+  const html = `
+    <div class="modal-form-group"><label>stream name</label><input id="mf_sname" value="${s.stream||s.name||''}"></div>
+    <div class="modal-form-group"><label>frequency</label><input id="mf_sfreq" value="${s.frequency||''}"></div>
+    <div class="modal-form-group"><label>source</label><input id="mf_ssrc" value="${s.source||''}"></div>
+    <div class="modal-form-group"><label>status</label><select id="mf_sstatus"><option ${s.status==='live'?'selected':''}>live</option><option ${s.status==='scheduled'?'selected':''}>scheduled</option><option ${s.status==='offline'?'selected':''}>offline</option></select></div>
+    <div class="modal-form-group"><label>last update</label><input id="mf_slast" value="${s.last_update||''}"></div>
+  `;
+  openModal('edit stream', html, async () => {
+    const body = { stream: document.getElementById('mf_sname').value, name: document.getElementById('mf_sname').value, frequency: document.getElementById('mf_sfreq').value, source: document.getElementById('mf_ssrc').value, status: document.getElementById('mf_sstatus').value, last_update: document.getElementById('mf_slast').value };
+    try { await apiPut('/api/streams/' + id, body); showToast('stream updated'); closeModal(); loadStreams(); }
+    catch(e2) { showToast('error: ' + e2.message, 'error'); }
+  });
+}
+
+// ═════════════ REGULATORY UPDATES ═════════════
+let _regData = [];
+async function loadRegulatory() {
+  try { _regData = await apiFetch('/api/regulatory'); renderRegulatory(); }
+  catch(e) { console.error('regulatory load failed', e); }
+}
+
+function renderRegulatory() {
+  document.getElementById('regGrid').innerHTML = _regData.map(r => `
+    <div class="reg-card">
+      <div class="card-actions">
+        <button class="btn-icon edit-btn" onclick="openRegulatoryModal(${r.id})" title="edit">✎</button>
+        <button class="btn-icon delete-btn" onclick="deleteRegulatory(${r.id})" title="delete">✕</button>
+      </div>
+      <h4>${r.title || ''}</h4>
+      <div class="reg-date">${r.date || ''} ${r.jurisdiction ? '· ' + r.jurisdiction : ''}</div>
+      <p>${r.summary || r.description || ''}</p>
+    </div>
+  `).join('');
+}
+
+function openRegulatoryModal(id) {
+  const r = id ? _regData.find(x => x.id === id) : {};
+  const title = id ? 'edit regulatory update' : 'add regulatory update';
+  const html = `
+    <div class="modal-form-group"><label>title</label><input id="mf_rtitle" value="${r.title||''}"></div>
+    <div class="modal-form-group"><label>jurisdiction</label><input id="mf_rjuris" value="${r.jurisdiction||''}"></div>
+    <div class="modal-form-group"><label>date</label><input id="mf_rdate" value="${r.date||''}" type="date"></div>
+    <div class="modal-form-group"><label>summary</label><textarea id="mf_rdesc">${r.summary||r.description||''}</textarea></div>
+    <div class="modal-form-group"><label>impact</label><select id="mf_rimpact"><option ${r.impact==='high'?'selected':''}>high</option><option ${r.impact==='medium'?'selected':''}>medium</option><option ${r.impact==='low'?'selected':''}>low</option></select></div>
+  `;
+  openModal(title, html, async () => {
+    const body = { title: document.getElementById('mf_rtitle').value, jurisdiction: document.getElementById('mf_rjuris').value, date: document.getElementById('mf_rdate').value, summary: document.getElementById('mf_rdesc').value, impact: document.getElementById('mf_rimpact').value };
+    try {
+      if (id) { await apiPut('/api/regulatory/' + id, body); showToast('update saved'); }
+      else { await apiPost('/api/regulatory', body); showToast('update created'); }
+      closeModal(); loadRegulatory();
+    } catch(e) { showToast('error: ' + e.message, 'error'); }
+  });
+}
+
+async function deleteRegulatory(id) {
+  if (!confirm('delete this regulatory update?')) return;
+  try { await apiDelete('/api/regulatory/' + id); showToast('deleted'); loadRegulatory(); }
+  catch(e) { showToast('error: ' + e.message, 'error'); }
+}
+
+// ═════════════ CHANGE LOG ═════════════
+async function loadChangelog() {
+  try {
+    const logs = await apiFetch('/api/changelog');
+    const tl = document.getElementById('changelogTimeline');
+    tl.innerHTML = logs.map(l => `
+      <div class="timeline-entry">
+        <div class="timeline-head">
+          <span class="timeline-actor">${l.user_name || 'system'}</span>
+          <span class="timeline-time">${l.created_at || ''}</span>
+        </div>
+        <div class="timeline-body">[${l.section || ''}] ${l.detail || l.action || ''}</div>
+      </div>
+    `).join('');
+    if (!logs.length) tl.innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:16px">no changes recorded yet</div>';
+  } catch(e) { console.error('changelog load failed', e); }
+}
+
+// ═════════════ APPROVAL QUEUE ═════════════
+let _approvalsData = [];
+async function loadApprovals() {
+  try { _approvalsData = await apiFetch('/api/approvals'); renderApprovals(); }
+  catch(e) { console.error('approvals load failed', e); }
+}
+
+function renderApprovals() {
+  const pending = _approvalsData.filter(a => a.status === 'pending');
+  document.getElementById('approvalSubtitle').textContent = pending.length + ' items pending review';
+  const grid = document.getElementById('approvalGrid');
+  grid.innerHTML = _approvalsData.map(a => {
+    const resolved = a.status !== 'pending';
+    return `
+    <div class="approval-card ${resolved ? 'resolved' : ''}">
+      <h4>${a.title || ''}</h4>
+      <div class="approval-meta">${a.detail || ''}</div>
+      ${resolved ? `<div class="approval-status-badge ${a.status}">${a.status}</div>` : ''}
+      <div class="approval-actions">
+        <button class="btn btn-primary" onclick="handleApproval(${a.id}, 'approve')">approve</button>
+        <button class="btn btn-danger" onclick="handleApproval(${a.id}, 'reject')">reject</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function handleApproval(id, action) {
+  try {
+    await apiPut('/api/approvals/' + id, { action });
+    showToast(action === 'approve' ? 'approved' : 'rejected');
+    loadApprovals(); loadDashboard();
+  } catch(e) { showToast('error: ' + e.message, 'error'); }
+}
+
+function openApprovalModal() {
+  const html = `
+    <div class="modal-form-group"><label>title</label><input id="mf_atitle" value=""></div>
+    <div class="modal-form-group"><label>description / details</label><textarea id="mf_adesc"></textarea></div>
+  `;
+  openModal('add approval', html, async () => {
+    const body = { title: document.getElementById('mf_atitle').value, description: document.getElementById('mf_adesc').value, details: document.getElementById('mf_adesc').value, status: 'pending' };
+    try { await apiPost('/api/approvals', body); showToast('approval created'); closeModal(); loadApprovals(); }
+    catch(e) { showToast('error: ' + e.message, 'error'); }
+  });
+}
+
+// ── TABLE SORT ──
+function sortTable(tableId, colIndex) {
+  const table = document.getElementById(tableId);
+  const tbody = table.querySelector('tbody');
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  const ths = table.querySelectorAll('th');
+  const th = ths[colIndex];
+  const asc = !th.classList.contains('sorted') || th.dataset.dir === 'desc';
+  ths.forEach(t => { t.classList.remove('sorted'); t.dataset.dir = ''; });
+  th.classList.add('sorted');
+  th.dataset.dir = asc ? 'asc' : 'desc';
+  rows.sort((a, b) => {
+    let va = a.cells[colIndex].textContent.trim();
+    let vb = b.cells[colIndex].textContent.trim();
+    const na = parseFloat(va.replace(/[^0-9.-]/g, ''));
+    const nb = parseFloat(vb.replace(/[^0-9.-]/g, ''));
+    if (!isNaN(na) && !isNaN(nb)) return asc ? na - nb : nb - na;
+    return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+  });
+  rows.forEach(r => tbody.appendChild(r));
+}
+
+// ── COUNTRY SEARCH FILTER ──
+function filterCountryTable() {
+  const query = document.getElementById('countrySearch').value.toLowerCase();
+  const rows = document.querySelectorAll('#countryTable tbody tr');
+  rows.forEach(r => {
+    const text = r.textContent.toLowerCase();
+    r.style.display = text.includes(query) ? '' : 'none';
+  });
+}
+
+// ── INITIAL LOAD ──
+loadDashboard();
+</script>
+</body>
+</html>
