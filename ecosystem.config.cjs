@@ -10,8 +10,8 @@ module.exports = {
       env: {
         NODE_ENV: "production",
         PORT: 5000,
+        // DATABASE_URL and SESSION_SECRET loaded from .env file
       },
-      // Load .env file for DATABASE_URL
       env_file: ".env",
 
       // Process management
