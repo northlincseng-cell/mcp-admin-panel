@@ -15,6 +15,7 @@ import {
   type ChangeLogEntry, type InsertChangeLog,
   type Approval, type InsertApproval,
 } from "@shared/schema";
+import { DatabaseStorage } from "./dbStorage";
 
 // ═══════════════════════════════════════════════════
 //  STORAGE INTERFACE
@@ -1139,4 +1140,14 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Choose storage backend based on DATABASE_URL env var
+function createStorage(): IStorage {
+  if (process.env.DATABASE_URL) {
+    console.log("[storage] Using PostgreSQL database");
+    return new DatabaseStorage();
+  }
+  console.log("[storage] Using in-memory storage (no DATABASE_URL set)");
+  return new MemStorage();
+}
+
+export const storage = createStorage();
