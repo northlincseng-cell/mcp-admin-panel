@@ -5,7 +5,10 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { AuthProvider, useAuth } from "@/hooks/use-auth";
+import ChangePasswordDialog from "@/components/ChangePasswordDialog";
 import NotFound from "@/pages/not-found";
+import Login from "@/pages/Login";
 
 // Pages
 import Dashboard from "@/pages/Dashboard";
@@ -57,14 +60,45 @@ function AppRouter() {
   );
 }
 
+function AuthGate() {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-slate-400">loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Login />;
+  }
+
+  return (
+    <>
+      {/* Force password change on first login */}
+      {user.mustChangePassword && (
+        <ChangePasswordDialog open={true} forced={true} />
+      )}
+      <Router hook={useHashLocation}>
+        <AppRouter />
+      </Router>
+    </>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Router hook={useHashLocation}>
-          <AppRouter />
-        </Router>
+        <AuthProvider>
+          <AuthGate />
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

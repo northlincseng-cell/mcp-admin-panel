@@ -1,6 +1,9 @@
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { PerplexityAttribution } from "@/components/PerplexityAttribution";
+import { useAuth } from "@/hooks/use-auth";
+import ChangePasswordDialog from "@/components/ChangePasswordDialog";
 import {
   LayoutDashboard,
   Store,
@@ -21,6 +24,9 @@ import {
   CheckCircle,
   Sun,
   Moon,
+  LogOut,
+  KeyRound,
+  User,
 } from "lucide-react";
 
 interface NavItem {
@@ -91,6 +97,8 @@ interface SidebarProps {
 
 export function Sidebar({ darkMode, onToggleDarkMode }: SidebarProps) {
   const [location] = useLocation();
+  const { user, logout } = useAuth();
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
 
   const isActive = (href: string) => {
     if (href === "/") return location === "/";
@@ -146,19 +154,40 @@ export function Sidebar({ darkMode, onToggleDarkMode }: SidebarProps) {
         ))}
       </nav>
 
-      {/* Dark mode toggle */}
-      <div className="px-3 py-2 border-t border-green-900/40">
+      {/* User section */}
+      <div className="px-3 py-2 border-t border-green-900/40 space-y-1">
+        {user && (
+          <div className="flex items-center gap-2 px-2.5 py-1.5">
+            <User className="h-4 w-4 text-green-100/40 shrink-0" />
+            <div className="min-w-0 flex-1">
+              <div className="text-[13px] text-green-100/80 truncate lowercase">{user.displayName}</div>
+              <div className="text-[10px] text-green-100/30 lowercase">{user.role.replace("_", " ")}</div>
+            </div>
+          </div>
+        )}
+        <button
+          onClick={() => setShowPasswordDialog(true)}
+          className="flex items-center gap-2 px-2.5 py-1.5 w-full rounded text-[13px] text-green-100/60 hover:text-green-100/90 hover:bg-green-800/20 transition-colors lowercase"
+          data-testid="button-change-password"
+        >
+          <KeyRound className="h-4 w-4" />
+          change password
+        </button>
         <button
           onClick={onToggleDarkMode}
           className="flex items-center gap-2 px-2.5 py-1.5 w-full rounded text-[13px] text-green-100/60 hover:text-green-100/90 hover:bg-green-800/20 transition-colors lowercase"
           data-testid="button-dark-mode"
         >
-          {darkMode ? (
-            <Sun className="h-4 w-4" />
-          ) : (
-            <Moon className="h-4 w-4" />
-          )}
+          {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           {darkMode ? "light mode" : "dark mode"}
+        </button>
+        <button
+          onClick={() => logout()}
+          className="flex items-center gap-2 px-2.5 py-1.5 w-full rounded text-[13px] text-red-400/70 hover:text-red-400 hover:bg-red-900/20 transition-colors lowercase"
+          data-testid="button-logout"
+        >
+          <LogOut className="h-4 w-4" />
+          sign out
         </button>
       </div>
 
@@ -166,6 +195,12 @@ export function Sidebar({ darkMode, onToggleDarkMode }: SidebarProps) {
       <div className="border-t border-green-900/40">
         <PerplexityAttribution />
       </div>
+
+      {/* Change password dialog */}
+      <ChangePasswordDialog
+        open={showPasswordDialog}
+        onClose={() => setShowPasswordDialog(false)}
+      />
     </aside>
   );
 }

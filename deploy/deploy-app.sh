@@ -25,7 +25,7 @@ fi
 
 # ── 1. Clone or pull ──────────────────────────────────
 echo ""
-echo "[1/5] Getting latest code..."
+echo "[1/6] Getting latest code..."
 if [ -d "$APP_DIR" ]; then
   cd "$APP_DIR"
   git pull origin main
@@ -36,23 +36,23 @@ fi
 
 # ── 2. Install dependencies ──────────────────────────
 echo ""
-echo "[2/5] Installing dependencies..."
+echo "[2/6] Installing dependencies..."
 npm ci --production=false
 
 # ── 3. Push database schema ──────────────────────────
 echo ""
-echo "[3/5] Pushing database schema..."
+echo "[3/6] Pushing database schema..."
 npx drizzle-kit push --force
 
 # ── 4. Seed the database ─────────────────────────────
 echo ""
-echo "[4/5] Seeding database..."
-npx tsx server/seed.ts
-echo "  Database seeded"
+echo "[4/6] Running auth migration..."
+npx tsx server/migrate-auth.ts
+echo "  Auth migration complete"
 
 # ── 5. Build production bundle ────────────────────────
 echo ""
-echo "[5/5] Building production bundle..."
+echo "[5/6] Building production bundle..."
 npm run build
 echo "  Build complete"
 
@@ -61,6 +61,7 @@ cat > "$APP_DIR/.env" <<ENV
 DATABASE_URL=$DATABASE_URL
 NODE_ENV=production
 PORT=5000
+SESSION_SECRET=mcp-gs-admin-$(openssl rand -hex 16)
 ENV
 chmod 600 "$APP_DIR/.env"
 

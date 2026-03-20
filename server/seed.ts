@@ -7,7 +7,9 @@
 import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { sql } from "drizzle-orm";
+import bcrypt from "bcrypt";
 import {
+  users,
   retailers, products, retailerProducts, countries, deals,
   volumeTiers, gsPricing, equivalenceConfig, valueProtection,
   carbonMarkets, c2050Streams, regulatoryUpdates, systemStatus,
@@ -330,13 +332,32 @@ async function seed() {
   const insertedAP = await db.insert(approvalQueue).values(apData).returning();
   console.log(`  ✓ ${insertedAP.length} approval queue entries`);
 
+  // ═══════════════════════════════════════════════════
+  //  DEFAULT ADMIN USER
+  // ═══════════════════════════════════════════════════
+  console.log("\nseeding default admin user...");
+  const salt = await bcrypt.genSalt(12);
+  const defaultPassword = await bcrypt.hash("McpAdmin2026!", salt);
+  const insertedUsers = await db.insert(users).values([
+    {
+      username: "admin",
+      passwordHash: defaultPassword,
+      displayName: "mcp administrator",
+      role: "super_admin",
+      active: true,
+      mustChangePassword: true,
+    },
+  ]).onConflictDoNothing().returning();
+  console.log(`  ✓ ${insertedUsers.length} users (default: admin / McpAdmin2026!)`);
+
   console.log("\n✅ database seeded successfully!");
   console.log(`   total records: ${
     insertedRetailers.length + insertedProducts.length + insertedOffers.length +
     insertedCountries.length + insertedDeals.length + insertedVT.length +
     insertedGSP.length + insertedEQ.length + insertedVP.length +
     insertedCM.length + insertedCS.length + insertedRU.length +
-    insertedSS.length + insertedCL.length + insertedAP.length
+    insertedSS.length + insertedCL.length + insertedAP.length +
+    insertedUsers.length
   }`);
 
   await pool.end();

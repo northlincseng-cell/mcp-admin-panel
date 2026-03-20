@@ -1,6 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { requireAuth, requireRole } from "./auth";
 import {
   insertRetailerSchema,
   insertProductSchema,
@@ -16,6 +17,7 @@ import {
   insertRegulatoryUpdateSchema,
   insertSystemStatusSchema,
   insertApprovalSchema,
+  hasRole,
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -83,6 +85,32 @@ export async function registerRoutes(
   });
 
   // ═══════════════════════════════════════════════════
+  //  RBAC GUARDS
+  //  - All /api routes (except /api/auth/*) require login
+  //  - GET = viewer+ (read access)
+  //  - POST/PUT/DELETE = admin+ (write access)
+  // ═══════════════════════════════════════════════════
+
+  app.use('/api', (req: Request, res: Response, next: NextFunction) => {
+    // Auth routes are public
+    if (req.path.startsWith('/auth/')) return next();
+
+    // Everything else requires login
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: 'authentication required' });
+    }
+
+    // Write operations require admin role
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
+      if (!hasRole(req.user!.role, 'admin')) {
+        return res.status(403).json({ error: 'admin access required for write operations' });
+      }
+    }
+
+    next();
+  });
+
+  // ═══════════════════════════════════════════════════
   //  DASHBOARD
   // ═══════════════════════════════════════════════════
 
@@ -125,7 +153,7 @@ export async function registerRoutes(
       const body = sanitize(req.body);
       const parsed = insertRetailerSchema.parse(body);
       const retailer = await storage.createRetailer(parsed);
-      await storage.logChange("created", "retailers", `created retailer: ${retailer.name}`, "api");
+      await storage.logChange("created", "retailers", `created retailer: ${retailer.name}`, req.user?.username || "system");
       res.status(201).json(retailer);
     } catch (e: any) {
       if (e instanceof z.ZodError) return res.status(400).json({ error: "validation failed", details: e.errors });
@@ -141,7 +169,7 @@ export async function registerRoutes(
       const parsed = insertRetailerSchema.partial().parse(body);
       const retailer = await storage.updateRetailer(id, parsed);
       if (!retailer) return res.status(404).json({ error: "retailer not found" });
-      await storage.logChange("updated", "retailers", `updated retailer: ${retailer.name}`, "api");
+      await storage.logChange("updated", "retailers", `updated retailer: ${retailer.name}`, req.user?.username || "system");
       res.json(retailer);
     } catch (e: any) {
       if (e instanceof z.ZodError) return res.status(400).json({ error: "validation failed", details: e.errors });
@@ -156,7 +184,7 @@ export async function registerRoutes(
       const existing = await storage.getRetailer(id);
       if (!existing) return res.status(404).json({ error: "retailer not found" });
       await storage.deleteRetailer(id);
-      await storage.logChange("deleted", "retailers", `deleted retailer: ${existing.name}`, "api");
+      await storage.logChange("deleted", "retailers", `deleted retailer: ${existing.name}`, req.user?.username || "system");
       res.json({ success: true });
     } catch (e: any) {
       res.status(500).json({ error: e.message });
@@ -207,7 +235,7 @@ export async function registerRoutes(
       const body = sanitize(req.body);
       const parsed = insertProductSchema.parse(body);
       const product = await storage.createProduct(parsed);
-      await storage.logChange("created", "products", `created product: ${product.name}`, "api");
+      await storage.logChange("created", "products", `created product: ${product.name}`, req.user?.username || "system");
       res.status(201).json(product);
     } catch (e: any) {
       if (e instanceof z.ZodError) return res.status(400).json({ error: "validation failed", details: e.errors });
@@ -223,7 +251,7 @@ export async function registerRoutes(
       const parsed = insertProductSchema.partial().parse(body);
       const product = await storage.updateProduct(id, parsed);
       if (!product) return res.status(404).json({ error: "product not found" });
-      await storage.logChange("updated", "products", `updated product: ${product.name}`, "api");
+      await storage.logChange("updated", "products", `updated product: ${product.name}`, req.user?.username || "system");
       res.json(product);
     } catch (e: any) {
       if (e instanceof z.ZodError) return res.status(400).json({ error: "validation failed", details: e.errors });
@@ -238,7 +266,7 @@ export async function registerRoutes(
       const existing = await storage.getProduct(id);
       if (!existing) return res.status(404).json({ error: "product not found" });
       await storage.deleteProduct(id);
-      await storage.logChange("deleted", "products", `deleted product: ${existing.name}`, "api");
+      await storage.logChange("deleted", "products", `deleted product: ${existing.name}`, req.user?.username || "system");
       res.json({ success: true });
     } catch (e: any) {
       res.status(500).json({ error: e.message });
@@ -309,7 +337,7 @@ export async function registerRoutes(
       const existing = await storage.getRetailerProduct(id);
       if (!existing) return res.status(404).json({ error: "offer not found" });
       await storage.deleteRetailerProduct(id);
-      await storage.logChange("deleted", "offers", `deleted offer id ${id}`, "api");
+      await storage.logChange("deleted", "offers", `deleted offer id ${id}`, req.user?.username || "system");
       res.json({ success: true });
     } catch (e: any) {
       res.status(500).json({ error: e.message });
@@ -334,7 +362,7 @@ export async function registerRoutes(
       const body = sanitize(req.body);
       const parsed = insertCountrySchema.parse(body);
       const country = await storage.createCountry(parsed);
-      await storage.logChange("created", "countries", `created country: ${country.name}`, "api");
+      await storage.logChange("created", "countries", `created country: ${country.name}`, req.user?.username || "system");
       res.status(201).json(country);
     } catch (e: any) {
       if (e instanceof z.ZodError) return res.status(400).json({ error: "validation failed", details: e.errors });
@@ -350,7 +378,7 @@ export async function registerRoutes(
       const parsed = insertCountrySchema.partial().parse(body);
       const country = await storage.updateCountry(id, parsed);
       if (!country) return res.status(404).json({ error: "country not found" });
-      await storage.logChange("updated", "countries", `updated country: ${country.name}`, "api");
+      await storage.logChange("updated", "countries", `updated country: ${country.name}`, req.user?.username || "system");
       res.json(country);
     } catch (e: any) {
       if (e instanceof z.ZodError) return res.status(400).json({ error: "validation failed", details: e.errors });
@@ -365,7 +393,7 @@ export async function registerRoutes(
       const existing = await storage.getCountry(id);
       if (!existing) return res.status(404).json({ error: "country not found" });
       await storage.deleteCountry(id);
-      await storage.logChange("deleted", "countries", `deleted country: ${existing.name}`, "api");
+      await storage.logChange("deleted", "countries", `deleted country: ${existing.name}`, req.user?.username || "system");
       res.json({ success: true });
     } catch (e: any) {
       res.status(500).json({ error: e.message });
@@ -390,7 +418,7 @@ export async function registerRoutes(
       const body = sanitize(req.body);
       const parsed = insertDealSchema.parse(body);
       const deal = await storage.createDeal(parsed);
-      await storage.logChange("created", "deals", `created deal: ${deal.name}`, "api");
+      await storage.logChange("created", "deals", `created deal: ${deal.name}`, req.user?.username || "system");
       res.status(201).json(deal);
     } catch (e: any) {
       if (e instanceof z.ZodError) return res.status(400).json({ error: "validation failed", details: e.errors });
@@ -406,7 +434,7 @@ export async function registerRoutes(
       const parsed = insertDealSchema.partial().parse(body);
       const deal = await storage.updateDeal(id, parsed);
       if (!deal) return res.status(404).json({ error: "deal not found" });
-      await storage.logChange("updated", "deals", `updated deal: ${deal.name}`, "api");
+      await storage.logChange("updated", "deals", `updated deal: ${deal.name}`, req.user?.username || "system");
       res.json(deal);
     } catch (e: any) {
       if (e instanceof z.ZodError) return res.status(400).json({ error: "validation failed", details: e.errors });
@@ -421,7 +449,7 @@ export async function registerRoutes(
       const existing = await storage.getDeal(id);
       if (!existing) return res.status(404).json({ error: "deal not found" });
       await storage.deleteDeal(id);
-      await storage.logChange("deleted", "deals", `deleted deal: ${existing.name}`, "api");
+      await storage.logChange("deleted", "deals", `deleted deal: ${existing.name}`, req.user?.username || "system");
       res.json({ success: true });
     } catch (e: any) {
       res.status(500).json({ error: e.message });
@@ -449,7 +477,7 @@ export async function registerRoutes(
       const parsed = insertVolumeTierSchema.partial().parse(body);
       const tier = await storage.updateVolumeTier(id, parsed);
       if (!tier) return res.status(404).json({ error: "volume tier not found" });
-      await storage.logChange("updated", "volume-tiers", `updated tier: ${tier.name}`, "api");
+      await storage.logChange("updated", "volume-tiers", `updated tier: ${tier.name}`, req.user?.username || "system");
       res.json(tier);
     } catch (e: any) {
       if (e instanceof z.ZodError) return res.status(400).json({ error: "validation failed", details: e.errors });
@@ -478,7 +506,7 @@ export async function registerRoutes(
       const parsed = insertGsPricingSchema.partial().parse(body);
       const pricing = await storage.updateGsPricing(id, parsed);
       if (!pricing) return res.status(404).json({ error: "pricing tier not found" });
-      await storage.logChange("updated", "gs-pricing", `updated pricing tier: ${pricing.tierName}`, "api");
+      await storage.logChange("updated", "gs-pricing", `updated pricing tier: ${pricing.tierName}`, req.user?.username || "system");
       res.json(pricing);
     } catch (e: any) {
       if (e instanceof z.ZodError) return res.status(400).json({ error: "validation failed", details: e.errors });
@@ -507,7 +535,7 @@ export async function registerRoutes(
       const parsed = insertEquivalenceSchema.partial().parse(body);
       const eq = await storage.updateEquivalence(id, parsed);
       if (!eq) return res.status(404).json({ error: "equivalence config not found" });
-      await storage.logChange("updated", "equivalence", `updated dimension: ${eq.dimension}`, "api");
+      await storage.logChange("updated", "equivalence", `updated dimension: ${eq.dimension}`, req.user?.username || "system");
       res.json(eq);
     } catch (e: any) {
       if (e instanceof z.ZodError) return res.status(400).json({ error: "validation failed", details: e.errors });
@@ -536,7 +564,7 @@ export async function registerRoutes(
       const parsed = insertValueProtectionSchema.partial().parse(body);
       const vp = await storage.updateValueProtection(id, parsed);
       if (!vp) return res.status(404).json({ error: "value protection dimension not found" });
-      await storage.logChange("updated", "value-protection", `updated dimension: ${vp.dimension}`, "api");
+      await storage.logChange("updated", "value-protection", `updated dimension: ${vp.dimension}`, req.user?.username || "system");
       res.json(vp);
     } catch (e: any) {
       if (e instanceof z.ZodError) return res.status(400).json({ error: "validation failed", details: e.errors });
@@ -562,7 +590,7 @@ export async function registerRoutes(
       const body = sanitize(req.body);
       const parsed = insertCarbonMarketSchema.parse(body);
       const market = await storage.createCarbonMarket(parsed);
-      await storage.logChange("created", "carbon-markets", `created market: ${market.name}`, "api");
+      await storage.logChange("created", "carbon-markets", `created market: ${market.name}`, req.user?.username || "system");
       res.status(201).json(market);
     } catch (e: any) {
       if (e instanceof z.ZodError) return res.status(400).json({ error: "validation failed", details: e.errors });
@@ -578,7 +606,7 @@ export async function registerRoutes(
       const parsed = insertCarbonMarketSchema.partial().parse(body);
       const market = await storage.updateCarbonMarket(id, parsed);
       if (!market) return res.status(404).json({ error: "carbon market not found" });
-      await storage.logChange("updated", "carbon-markets", `updated market: ${market.name}`, "api");
+      await storage.logChange("updated", "carbon-markets", `updated market: ${market.name}`, req.user?.username || "system");
       res.json(market);
     } catch (e: any) {
       if (e instanceof z.ZodError) return res.status(400).json({ error: "validation failed", details: e.errors });
@@ -593,7 +621,7 @@ export async function registerRoutes(
       const existing = await storage.getCarbonMarket(id);
       if (!existing) return res.status(404).json({ error: "carbon market not found" });
       await storage.deleteCarbonMarket(id);
-      await storage.logChange("deleted", "carbon-markets", `deleted market: ${existing.name}`, "api");
+      await storage.logChange("deleted", "carbon-markets", `deleted market: ${existing.name}`, req.user?.username || "system");
       res.json({ success: true });
     } catch (e: any) {
       res.status(500).json({ error: e.message });
@@ -621,7 +649,7 @@ export async function registerRoutes(
       const parsed = insertC2050StreamSchema.partial().parse(body);
       const stream = await storage.updateC2050Stream(id, parsed);
       if (!stream) return res.status(404).json({ error: "c2050 stream not found" });
-      await storage.logChange("updated", "c2050-streams", `updated stream: ${stream.stream}`, "api");
+      await storage.logChange("updated", "c2050-streams", `updated stream: ${stream.stream}`, req.user?.username || "system");
       res.json(stream);
     } catch (e: any) {
       if (e instanceof z.ZodError) return res.status(400).json({ error: "validation failed", details: e.errors });
@@ -647,7 +675,7 @@ export async function registerRoutes(
       const body = sanitize(req.body);
       const parsed = insertRegulatoryUpdateSchema.parse(body);
       const update = await storage.createRegulatoryUpdate(parsed);
-      await storage.logChange("created", "regulatory", `created regulatory update: ${update.title}`, "api");
+      await storage.logChange("created", "regulatory", `created regulatory update: ${update.title}`, req.user?.username || "system");
       res.status(201).json(update);
     } catch (e: any) {
       if (e instanceof z.ZodError) return res.status(400).json({ error: "validation failed", details: e.errors });
@@ -663,7 +691,7 @@ export async function registerRoutes(
       const parsed = insertRegulatoryUpdateSchema.partial().parse(body);
       const update = await storage.updateRegulatoryUpdate(id, parsed);
       if (!update) return res.status(404).json({ error: "regulatory update not found" });
-      await storage.logChange("updated", "regulatory", `updated regulatory: ${update.title}`, "api");
+      await storage.logChange("updated", "regulatory", `updated regulatory: ${update.title}`, req.user?.username || "system");
       res.json(update);
     } catch (e: any) {
       if (e instanceof z.ZodError) return res.status(400).json({ error: "validation failed", details: e.errors });
@@ -678,7 +706,7 @@ export async function registerRoutes(
       const existing = await storage.getRegulatoryUpdate(id);
       if (!existing) return res.status(404).json({ error: "regulatory update not found" });
       await storage.deleteRegulatoryUpdate(id);
-      await storage.logChange("deleted", "regulatory", `deleted regulatory: ${existing.title}`, "api");
+      await storage.logChange("deleted", "regulatory", `deleted regulatory: ${existing.title}`, req.user?.username || "system");
       res.json({ success: true });
     } catch (e: any) {
       res.status(500).json({ error: e.message });
@@ -706,7 +734,7 @@ export async function registerRoutes(
       const parsed = insertSystemStatusSchema.partial().parse(body);
       const status = await storage.updateSystemStatus(id, parsed);
       if (!status) return res.status(404).json({ error: "system status not found" });
-      await storage.logChange("updated", "system-status", `updated service: ${status.service} → ${status.status}`, "api");
+      await storage.logChange("updated", "system-status", `updated service: ${status.service} → ${status.status}`, req.user?.username || "system");
       res.json(status);
     } catch (e: any) {
       if (e instanceof z.ZodError) return res.status(400).json({ error: "validation failed", details: e.errors });
@@ -745,7 +773,7 @@ export async function registerRoutes(
       const body = sanitize(req.body);
       const parsed = insertApprovalSchema.parse(body);
       const approval = await storage.createApproval(parsed);
-      await storage.logChange("created", "approvals", `created approval request: ${approval.title}`, "api");
+      await storage.logChange("created", "approvals", `created approval request: ${approval.title}`, req.user?.username || "system");
       res.status(201).json(approval);
     } catch (e: any) {
       if (e instanceof z.ZodError) return res.status(400).json({ error: "validation failed", details: e.errors });
@@ -766,9 +794,9 @@ export async function registerRoutes(
         const updated = await storage.updateApproval(id, {
           status,
           resolvedAt: new Date(),
-          resolvedBy: "api",
+          resolvedBy: req.user?.username || "system",
         });
-        await storage.logChange(action === "approve" ? "approved" : "rejected", "approvals", `${status} approval: ${existing.title}`, "api");
+        await storage.logChange(action === "approve" ? "approved" : "rejected", "approvals", `${status} approval: ${existing.title}`, req.user?.username || "system");
         return res.json(updated);
       }
 
@@ -777,7 +805,7 @@ export async function registerRoutes(
       const parsed = insertApprovalSchema.partial().parse(body);
       const updated = await storage.updateApproval(id, parsed);
       if (!updated) return res.status(404).json({ error: "approval not found" });
-      await storage.logChange("updated", "approvals", `updated approval: ${updated.title}`, "api");
+      await storage.logChange("updated", "approvals", `updated approval: ${updated.title}`, req.user?.username || "system");
       res.json(updated);
     } catch (e: any) {
       if (e instanceof z.ZodError) return res.status(400).json({ error: "validation failed", details: e.errors });

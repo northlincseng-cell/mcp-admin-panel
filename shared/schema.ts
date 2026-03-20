@@ -3,6 +3,28 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // ═══════════════════════════════════════════════════
+//  USERS & AUTHENTICATION
+//  Roles: super_admin > admin > analyst > api_client > viewer
+//  No PII stored — usernames only, no email/phone
+// ═══════════════════════════════════════════════════
+
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: varchar("username", { length: 50 }).notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  displayName: text("display_name").notNull(),
+  role: text("role").notNull().default("viewer"),  // super_admin | admin | analyst | api_client | viewer
+  active: boolean("active").notNull().default(true),
+  mustChangePassword: boolean("must_change_password").notNull().default(true),
+  lastLoginAt: timestamp("last_login_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  uniqueIndex("idx_users_username").on(table.username),
+]);
+
+
+// ═══════════════════════════════════════════════════
 //  RETAILERS & PRODUCTS — Core commercial model
 //  Efficient: composite indexes on frequently joined columns,
 //  denormalised gs_total on offers to avoid runtime sums
@@ -320,3 +342,31 @@ export type ChangeLogEntry = typeof changeLog.$inferSelect;
 export const insertApprovalSchema = createInsertSchema(approvalQueue).omit({ id: true, createdAt: true, resolvedAt: true });
 export type InsertApproval = z.infer<typeof insertApprovalSchema>;
 export type Approval = typeof approvalQueue.$inferSelect;
+
+// Users
+export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, updatedAt: true, lastLoginAt: true });
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type User = typeof users.$inferSelect;
+
+// Role hierarchy (higher index = more privilege)
+export const ROLE_HIERARCHY = ["viewer", "api_client", "analyst", "admin", "super_admin"] as const;
+export type UserRole = typeof ROLE_HIERARCHY[number];
+
+/** Check if roleA has at least the privilege of roleB */
+export function hasRole(userRole: string, requiredRole: string): boolean {
+  const userIdx = ROLE_HIERARCHY.indexOf(userRole as UserRole);
+  const reqIdx = ROLE_HIERARCHY.indexOf(requiredRole as UserRole);
+  return userIdx >= reqIdx;
+}
+
+// Login schema for validation
+export const loginSchema = z.object({
+  username: z.string().min(1, "username is required"),
+  password: z.string().min(1, "password is required"),
+});
+
+// Change password schema
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "current password is required"),
+  newPassword: z.string().min(8, "password must be at least 8 characters"),
+});
