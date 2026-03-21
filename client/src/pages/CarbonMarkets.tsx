@@ -20,7 +20,19 @@ interface HistoryPoint {
   recordedAt: string;
 }
 
-function MiniChart({ marketId }: { marketId: number }) {
+function Sparkline({ data }: { data: HistoryPoint[] }) {
+  if (data.length < 2) return null;
+  const prices = data.slice(-12).map(h => h.price);
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  const range = max - min || 1;
+  const w = 60, h = 16;
+  const points = prices.map((p, i) => `${(i / (prices.length - 1)) * w},${h - ((p - min) / range) * h}`).join(" ");
+  const up = prices[prices.length - 1] >= prices[0];
+  return <svg width={w} height={h} className="inline-block ml-1 align-middle"><polyline fill="none" stroke={up ? "#6ab023" : "#ef4444"} strokeWidth="1.5" points={points} /></svg>;
+}
+
+function MarketCharts({ marketId }: { marketId: number }) {
   const { data: history = [] } = useQuery<HistoryPoint[]>({
     queryKey: ["/api/markets", marketId, "history"],
     queryFn: async () => { const r = await apiRequest("GET", `/api/markets/${marketId}/history`); return r.json(); },
@@ -32,15 +44,18 @@ function MiniChart({ marketId }: { marketId: number }) {
   }));
   const trending = history[history.length - 1].price >= history[0].price;
   return (
-    <div className="mt-3 -mx-2">
-      <ResponsiveContainer width="100%" height={100}>
-        <LineChart data={chartData}>
-          <XAxis dataKey="date" tick={{ fontSize: 9 }} interval={Math.floor(chartData.length / 4)} tickLine={false} axisLine={false} />
-          <YAxis tick={{ fontSize: 9 }} tickLine={false} axisLine={false} width={35} domain={["auto", "auto"]} />
-          <Tooltip contentStyle={{ fontSize: 11, textTransform: "lowercase" }} formatter={(v: number) => [v.toFixed(2), "price"]} />
-          <Line type="monotone" dataKey="price" stroke={trending ? "#6ab023" : "#ef4444"} strokeWidth={1.5} dot={false} />
-        </LineChart>
-      </ResponsiveContainer>
+    <div className="mt-2">
+      <Sparkline data={history} />
+      <div className="-mx-2 mt-1">
+        <ResponsiveContainer width="100%" height={100}>
+          <LineChart data={chartData}>
+            <XAxis dataKey="date" tick={{ fontSize: 9 }} interval={Math.floor(chartData.length / 4)} tickLine={false} axisLine={false} />
+            <YAxis tick={{ fontSize: 9 }} tickLine={false} axisLine={false} width={35} domain={["auto", "auto"]} />
+            <Tooltip contentStyle={{ fontSize: 11, textTransform: "lowercase" }} formatter={(v: number) => [v.toFixed(2), "price"]} />
+            <Line type="monotone" dataKey="price" stroke={trending ? "#6ab023" : "#ef4444"} strokeWidth={1.5} dot={false} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }
@@ -191,7 +206,7 @@ export default function CarbonMarkets() {
                   {market.trendUp ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
                   {market.delta || "0%"}
                 </div>
-                <MiniChart marketId={market.id} />
+                <MarketCharts marketId={market.id} />
               </CardContent>
             </Card>
           ))}
