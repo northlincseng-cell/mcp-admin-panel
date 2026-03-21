@@ -50,7 +50,7 @@ export default function CarbonMarkets() {
 
   const { data: history = [], isLoading: historyLoading } = useQuery<HistoryPoint[]>({
     queryKey: ["/api/markets", activeMarketId, "history"],
-    queryFn: () => apiRequest("GET", `/api/markets/${activeMarketId}/history`),
+    queryFn: async () => { const r = await apiRequest("GET", `/api/markets/${activeMarketId}/history`); return r.json(); },
     enabled: !!activeMarketId,
   });
 
