@@ -5,6 +5,13 @@ import { CrudDialog, type FieldDef } from "@/components/shared/CrudDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Layers, Pencil } from "lucide-react";
 import {
@@ -19,6 +26,20 @@ import type { VolumeTier } from "@shared/schema";
 
 const COLORS = ["hsl(88, 68%, 42%)", "hsl(140, 50%, 38%)", "hsl(160, 50%, 40%)", "hsl(50, 70%, 50%)"];
 
+const EXCHANGE_RATES: Record<string, number> = {
+  GBP: 1, EUR: 1.16, USD: 1.33, AUD: 1.97, SGD: 1.73, NZD: 2.15, JPY: 195, ZAR: 24.5, CAD: 1.84, CHF: 1.12,
+};
+
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  GBP: "£", EUR: "€", USD: "$", AUD: "A$", SGD: "S$", NZD: "NZ$", JPY: "¥", ZAR: "R", CAD: "C$", CHF: "CHF",
+};
+
+function fmtPrice(n: number | null | undefined, symbol = "£"): string {
+  if (n === null || n === undefined || n === 0) return "—";
+  if (n < 0.01) return `${symbol}${n.toFixed(4)}`;
+  return `${symbol}${n.toFixed(3)}`;
+}
+
 const fields: FieldDef[] = [
   { key: "name", label: "tier name", required: true },
   { key: "threshold", label: "volume threshold" },
@@ -30,6 +51,7 @@ const fields: FieldDef[] = [
 export default function VolumeTiers() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<VolumeTier | null>(null);
+  const [displayCurrency, setDisplayCurrency] = useState("GBP");
 
   const { data: tiers = [], isLoading } = useQuery<VolumeTier[]>({
     queryKey: ["/api/tiers"],
@@ -50,9 +72,33 @@ export default function VolumeTiers() {
     value: parseInt(t.threshold?.replace(/[^\d]/g, "") || "0") || 1,
   }));
 
+  const isConverted = displayCurrency !== "GBP";
+  const sym = CURRENCY_SYMBOLS[displayCurrency] || "£";
+  const rate = EXCHANGE_RATES[displayCurrency] || 1;
+
   return (
     <div>
       <PageHeader title="volume tiers" icon={Layers} breadcrumb="commercial" />
+
+      {/* display currency selector */}
+      <div className="flex items-center gap-3 mb-6">
+        <span className="text-xs text-muted-foreground lowercase">display currency:</span>
+        <Select value={displayCurrency} onValueChange={setDisplayCurrency}>
+          <SelectTrigger className="h-8 w-[140px] text-xs" data-testid="select-display-currency">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(CURRENCY_SYMBOLS).map(([code, s]) => (
+              <SelectItem key={code} value={code} className="text-xs">{code} ({s})</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {isConverted && (
+          <span className="text-[10px] text-muted-foreground lowercase italic">
+            indicative rates only — not for trading
+          </span>
+        )}
+      </div>
 
       {isLoading ? (
         <div className="grid grid-cols-2 gap-4">
@@ -60,7 +106,7 @@ export default function VolumeTiers() {
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-4 mb-6">
-          {tiers.map((tier, idx) => (
+          {tiers.map((tier) => (
             <Card key={tier.id} className="border border-border" data-testid={`card-tier-${tier.id}`}>
               <CardContent className="p-4">
                 <div className="flex items-start justify-between mb-2">
@@ -77,6 +123,11 @@ export default function VolumeTiers() {
                   <div>
                     <span className="text-muted-foreground lowercase">price/gs</span>
                     <p className="font-medium">{tier.pricePerGs || "—"}</p>
+                    {isConverted && tier.priceNumeric && (
+                      <p className="text-muted-foreground text-[10px]">
+                        ≈ {fmtPrice(tier.priceNumeric * rate, sym)}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <span className="text-muted-foreground lowercase">discount</span>

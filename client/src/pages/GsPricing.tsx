@@ -8,6 +8,13 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -28,16 +35,30 @@ import {
 import { exportToCsv } from "@/lib/export";
 import type { GsPricing, VolumeTier, Deal } from "@shared/schema";
 
+const EXCHANGE_RATES: Record<string, number> = {
+  GBP: 1, EUR: 1.16, USD: 1.33, AUD: 1.97, SGD: 1.73, NZD: 2.15, JPY: 195, ZAR: 24.5, CAD: 1.84, CHF: 1.12,
+};
+
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  GBP: "£", EUR: "€", USD: "$", AUD: "A$", SGD: "S$", NZD: "NZ$", JPY: "¥", ZAR: "R", CAD: "C$", CHF: "CHF",
+};
+
 /** Format a numeric price to display string */
-function fmtPrice(n: number | null | undefined): string {
+function fmtPrice(n: number | null | undefined, symbol = "£"): string {
   if (n === null || n === undefined || n === 0) return "—";
-  if (n < 0.01) return `£${n.toFixed(4)}`;
-  return `£${n.toFixed(3)}`;
+  if (n < 0.01) return `${symbol}${n.toFixed(4)}`;
+  return `${symbol}${n.toFixed(3)}`;
+}
+
+function convertPrice(gbpPrice: number | null | undefined, currency: string): number | null {
+  if (gbpPrice === null || gbpPrice === undefined) return null;
+  return gbpPrice * (EXCHANGE_RATES[currency] || 1);
 }
 
 export default function GsPricingPage() {
   const [cascadeDialogOpen, setCascadeDialogOpen] = useState(false);
   const [newBasePrice, setNewBasePrice] = useState("");
+  const [displayCurrency, setDisplayCurrency] = useState("GBP");
 
   const { data: pricing = [], isLoading: pricingLoading } = useQuery<GsPricing[]>({
     queryKey: ["/api/pricing"],
@@ -112,6 +133,17 @@ export default function GsPricingPage() {
     return sum + val * mult;
   }, 0);
 
+  const sym = CURRENCY_SYMBOLS[displayCurrency] || "£";
+  const isConverted = displayCurrency !== "GBP";
+
+  /** show GBP price with optional converted amount */
+  function showPrice(gbpVal: number | null | undefined): string {
+    const gbp = fmtPrice(gbpVal);
+    if (!isConverted || !gbpVal) return gbp;
+    const converted = convertPrice(gbpVal, displayCurrency);
+    return `${gbp} (≈ ${fmtPrice(converted, sym)})`;
+  }
+
   return (
     <div>
       <PageHeader title="gs pricing" icon={DollarSign} breadcrumb="commercial — single source of truth">
@@ -148,6 +180,26 @@ export default function GsPricingPage() {
         </Button>
       </PageHeader>
 
+      {/* display currency selector */}
+      <div className="flex items-center gap-3 mb-6">
+        <span className="text-xs text-muted-foreground lowercase">display currency:</span>
+        <Select value={displayCurrency} onValueChange={setDisplayCurrency}>
+          <SelectTrigger className="h-8 w-[140px] text-xs" data-testid="select-display-currency">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(CURRENCY_SYMBOLS).map(([code, s]) => (
+              <SelectItem key={code} value={code} className="text-xs">{code} ({s})</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {isConverted && (
+          <span className="text-[10px] text-muted-foreground lowercase italic">
+            indicative rates only — not for trading
+          </span>
+        )}
+      </div>
+
       {isLoading ? (
         <div className="space-y-4">
           <Skeleton className="h-40" />
@@ -174,6 +226,11 @@ export default function GsPricingPage() {
                   <div className="text-3xl font-bold text-primary" data-testid="text-base-price">
                     {fmtPrice(basePrice?.priceNumeric)}
                   </div>
+                  {isConverted && basePrice?.priceNumeric && (
+                    <div className="text-sm text-muted-foreground">
+                      ≈ {fmtPrice(convertPrice(basePrice.priceNumeric, displayCurrency), sym)}
+                    </div>
+                  )}
                   <p className="text-xs text-muted-foreground lowercase">per green square</p>
                 </div>
               </div>
@@ -213,6 +270,9 @@ export default function GsPricingPage() {
                   <CardContent className="p-3.5">
                     <h4 className="text-xs font-semibold lowercase mb-1">{tier.tierName}</h4>
                     <div className="text-xl font-bold text-primary">{fmtPrice(tier.priceNumeric)}</div>
+                    {isConverted && tier.priceNumeric && (
+                      <div className="text-xs text-muted-foreground">≈ {fmtPrice(convertPrice(tier.priceNumeric, displayCurrency), sym)}</div>
+                    )}
                     <div className="mt-2 space-y-1 text-xs">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground lowercase">volume range</span>
@@ -241,6 +301,9 @@ export default function GsPricingPage() {
                   <CardContent className="p-3.5">
                     <h4 className="text-xs font-semibold lowercase mb-1">{tier.name}</h4>
                     <div className="text-lg font-bold text-primary">{fmtPrice(tier.priceNumeric)}</div>
+                    {isConverted && tier.priceNumeric && (
+                      <div className="text-xs text-muted-foreground">≈ {fmtPrice(convertPrice(tier.priceNumeric, displayCurrency), sym)}</div>
+                    )}
                     <div className="mt-2 space-y-1 text-xs">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground lowercase">threshold</span>
@@ -296,7 +359,7 @@ export default function GsPricingPage() {
                       <div className="flex items-center gap-4">
                         <div className="text-right text-xs">
                           <div className="text-muted-foreground lowercase">effective price</div>
-                          <div className="font-bold text-primary">{fmtPrice(deal.effectivePrice)}</div>
+                          <div className="font-bold text-primary">{showPrice(deal.effectivePrice)}</div>
                         </div>
                         <div className="text-right text-xs">
                           <div className="text-muted-foreground lowercase">
@@ -344,7 +407,7 @@ export default function GsPricingPage() {
               <CardContent className="p-4">
                 <h4 className="text-xs text-muted-foreground lowercase mb-1">projected annual revenue</h4>
                 <p className="text-xl font-bold text-primary">
-                  {basePrice?.priceNumeric ? fmtPrice(totalVolume * basePrice.priceNumeric) : "—"}/yr
+                  {basePrice?.priceNumeric ? showPrice(totalVolume * basePrice.priceNumeric) : "—"}/yr
                 </p>
               </CardContent>
             </Card>

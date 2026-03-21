@@ -687,14 +687,17 @@ export async function registerRoutes(
   app.post("/api/markets/refresh", requireRole("admin"), async (req: Request, res: Response) => {
     try {
       const marketData = [
-        { name: "EU ETS (EUA)", price: "€79.50/tCO₂", delta: "+1.2%", trendUp: true },
+        { name: "EU ETS (EUA)", price: "€67.46/tCO₂", delta: "-6.3%", trendUp: false },
         { name: "UK ETS (UKA)", price: "£42.80/tCO₂", delta: "-0.5%", trendUp: false },
-        { name: "California CCA", price: "$38.20/tCO₂", delta: "+0.8%", trendUp: true },
+        { name: "California CaT", price: "$35.10/tCO₂", delta: "+0.8%", trendUp: true },
         { name: "RGGI", price: "$15.40/tCO₂", delta: "+2.1%", trendUp: true },
-        { name: "NZ ETS", price: "NZ$53.00/tCO₂", delta: "-1.8%", trendUp: false },
+        { name: "NZ ETS", price: "NZ$48.50/tCO₂", delta: "-3.5%", trendUp: false },
         { name: "Korea ETS", price: "₩9,200/tCO₂", delta: "+0.3%", trendUp: true },
-        { name: "Voluntary (Verra VCS)", price: "$8.50/tCO₂", delta: "+3.2%", trendUp: true },
-        { name: "Voluntary (Gold Standard)", price: "$12.20/tCO₂", delta: "+1.5%", trendUp: true },
+        { name: "China National ETS", price: "¥72.00/tCO₂", delta: "+1.4%", trendUp: true },
+        { name: "Swiss ETS", price: "CHF 65.20/tCO₂", delta: "-1.2%", trendUp: false },
+        { name: "Canada OBPS", price: "C$65.00/tCO₂", delta: "+0.8%", trendUp: true },
+        { name: "Voluntary (Verra VCS)", price: "$7.20/tCO₂", delta: "-1.4%", trendUp: false },
+        { name: "Voluntary (Gold Standard)", price: "$11.80/tCO₂", delta: "-0.8%", trendUp: false },
       ];
 
       const existing = await storage.listCarbonMarkets();
@@ -709,9 +712,10 @@ export async function registerRoutes(
 
       // Insert history records for each market
       const basePrices: Record<string, number> = {
-        "EU ETS (EUA)": 79.50, "UK ETS (UKA)": 42.80, "California CCA": 38.20,
-        "RGGI": 15.40, "NZ ETS": 53.00, "Korea ETS": 9.20,
-        "Voluntary (Verra VCS)": 8.50, "Voluntary (Gold Standard)": 12.20,
+        "EU ETS (EUA)": 67.46, "UK ETS (UKA)": 42.80, "California CaT": 35.10,
+        "RGGI": 15.40, "NZ ETS": 48.50, "Korea ETS": 9.20,
+        "China National ETS": 72.00, "Swiss ETS": 65.20, "Canada OBPS": 65.00,
+        "Voluntary (Verra VCS)": 7.20, "Voluntary (Gold Standard)": 11.80,
       };
       const db = getDb();
       const updatedMarkets = await storage.listCarbonMarkets();

@@ -5,14 +5,39 @@ import { DataTable, type Column } from "@/components/shared/DataTable";
 import { CrudDialog, type FieldDef } from "@/components/shared/CrudDialog";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Globe, Pencil, Trash2 } from "lucide-react";
 import type { Country } from "@shared/schema";
 
+const CURRENCY_OPTIONS = [
+  { label: "GBP (£)", value: "GBP" },
+  { label: "EUR (€)", value: "EUR" },
+  { label: "USD ($)", value: "USD" },
+  { label: "AUD (A$)", value: "AUD" },
+  { label: "SGD (S$)", value: "SGD" },
+  { label: "NZD (NZ$)", value: "NZD" },
+  { label: "JPY (¥)", value: "JPY" },
+  { label: "ZAR (R)", value: "ZAR" },
+  { label: "CAD (C$)", value: "CAD" },
+  { label: "CHF (CHF)", value: "CHF" },
+];
+
+const SYMBOL_MAP: Record<string, string> = {
+  GBP: "£", EUR: "€", USD: "$", AUD: "A$", SGD: "S$", NZD: "NZ$", JPY: "¥", ZAR: "R", CAD: "C$", CHF: "CHF",
+};
+
 const fields: FieldDef[] = [
   { key: "name", label: "country name", required: true },
   { key: "flag", label: "flag emoji", placeholder: "🇬🇧" },
+  {
+    key: "currency",
+    label: "currency",
+    type: "select",
+    options: CURRENCY_OPTIONS,
+  },
+  { key: "currencySymbol", label: "currency symbol", placeholder: "£" },
   { key: "carbonReference", label: "carbon reference" },
   { key: "gsPrice", label: "gs price" },
   { key: "floorPrice", label: "floor price" },
@@ -39,7 +64,13 @@ export default function Countries() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: any) => apiRequest("POST", "/api/countries", data),
+    mutationFn: (data: any) => {
+      // auto-fill symbol from currency code if not set
+      if (data.currency && !data.currencySymbol) {
+        data.currencySymbol = SYMBOL_MAP[data.currency] || data.currency;
+      }
+      return apiRequest("POST", "/api/countries", data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/countries"] });
       setDialogOpen(false);
@@ -47,8 +78,12 @@ export default function Countries() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: any) =>
-      apiRequest("PUT", `/api/countries/${editing?.id}`, data),
+    mutationFn: (data: any) => {
+      if (data.currency && !data.currencySymbol) {
+        data.currencySymbol = SYMBOL_MAP[data.currency] || data.currency;
+      }
+      return apiRequest("PUT", `/api/countries/${editing?.id}`, data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/countries"] });
       setDialogOpen(false);
@@ -66,6 +101,15 @@ export default function Countries() {
   const columns: Column<Country>[] = [
     { key: "flag", label: "flag" },
     { key: "name", label: "name", sortable: true },
+    {
+      key: "currency",
+      label: "currency",
+      render: (c) => (
+        <Badge variant="outline" className="text-[10px] font-mono lowercase px-1.5 py-0">
+          {(c as any).currency || "GBP"} ({(c as any).currencySymbol || "£"})
+        </Badge>
+      ),
+    },
     { key: "carbonReference", label: "carbon reference" },
     { key: "gsPrice", label: "gs price", sortable: true },
     { key: "floorPrice", label: "floor price" },

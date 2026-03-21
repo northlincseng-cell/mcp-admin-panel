@@ -92,6 +92,8 @@ export const countries = pgTable("countries", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   flag: text("flag").default(""),
+  currency: text("currency").default("GBP"),
+  currencySymbol: text("currency_symbol").default("£"),
   carbonReference: text("carbon_reference").default(""),
   gsPrice: text("gs_price").default(""),
   floorPrice: text("floor_price").default(""),
