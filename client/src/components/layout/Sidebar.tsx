@@ -113,15 +113,14 @@ export function Sidebar({ darkMode, onToggleDarkMode }: SidebarProps) {
   };
 
   return (
-    <aside className="w-56 h-screen flex flex-col bg-[#1a2a14] dark:bg-[#0f1a0a] text-green-100/80 shrink-0 overflow-y-auto">
+    <aside className="w-56 h-screen flex flex-col bg-[#3c3c28] dark:bg-[#2a2a1c] text-green-100/80 shrink-0 overflow-y-auto">
       {/* Logo */}
-      <div className="px-4 py-4 flex items-center gap-2.5 border-b border-green-900/40">
+      <div className="px-4 py-4 flex items-center gap-2.5 border-b border-[#4a7a18]/40">
         <div className="w-7 h-7 rounded bg-[#6ab023] flex items-center justify-center">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <rect x="2" y="2" width="5" height="5" rx="0.5" fill="white" />
-            <rect x="9" y="2" width="5" height="5" rx="0.5" fill="white" opacity="0.7" />
-            <rect x="2" y="9" width="5" height="5" rx="0.5" fill="white" opacity="0.7" />
-            <rect x="9" y="9" width="5" height="5" rx="0.5" fill="white" opacity="0.5" />
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-label="my green squares logo">
+            <rect x="3" y="3" width="18" height="18" rx="2" fill="white" fillOpacity="0.2" />
+            <path d="M7 17c0-4 3-7.5 7-9.5C12.5 10 11 13 11 16c0 .5 0 1 .1 1.5" stroke="white" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+            <path d="M14 7.5c-.5 2-1.5 4-3 5.5" stroke="white" strokeWidth="1.2" strokeLinecap="round" fill="none" opacity="0.7" />
           </svg>
         </div>
         <span className="text-sm font-semibold text-green-50 lowercase tracking-tight">
@@ -133,7 +132,7 @@ export function Sidebar({ darkMode, onToggleDarkMode }: SidebarProps) {
       <nav className="flex-1 py-2 px-2 space-y-3 overflow-y-auto">
         {navSections.map((section) => (
           <div key={section.title}>
-            <div className="px-2 py-1.5 text-[10px] uppercase tracking-wider text-green-100/30 font-medium">
+            <div className="px-2 py-1.5 text-[10px] uppercase tracking-wider text-[#c8dea0]/40 font-medium">
               {section.title}
             </div>
             <div className="space-y-0.5">
@@ -145,8 +144,8 @@ export function Sidebar({ darkMode, onToggleDarkMode }: SidebarProps) {
                       className={cn(
                         "flex items-center gap-2.5 px-2.5 py-1.5 rounded text-[13px] lowercase transition-colors cursor-pointer",
                         active
-                          ? "bg-green-800/40 text-green-50 border-l-2 border-[#6ab023] -ml-0.5 pl-2"
-                          : "text-green-100/60 hover:text-green-100/90 hover:bg-green-800/20"
+                          ? "bg-[#4a7a18]/30 text-white border-l-2 border-[#8cc63f] -ml-0.5 pl-2"
+                          : "text-[#eaf0de]/60 hover:text-[#eaf0de]/90 hover:bg-[#4a7a18]/20"
                       )}
                       data-testid={`nav-${item.label.replace(/\s+/g, "-")}`}
                     >
@@ -162,19 +161,19 @@ export function Sidebar({ darkMode, onToggleDarkMode }: SidebarProps) {
       </nav>
 
       {/* User section */}
-      <div className="px-3 py-2 border-t border-green-900/40 space-y-1">
+      <div className="px-3 py-2 border-t border-[#4a7a18]/40 space-y-1">
         {user && (
           <div className="flex items-center gap-2 px-2.5 py-1.5">
-            <User className="h-4 w-4 text-green-100/40 shrink-0" />
+            <User className="h-4 w-4 text-[#c8dea0]/40 shrink-0" />
             <div className="min-w-0 flex-1">
-              <div className="text-[13px] text-green-100/80 truncate lowercase">{user.displayName}</div>
-              <div className="text-[10px] text-green-100/30 lowercase">{user.role.replace("_", " ")}</div>
+              <div className="text-[13px] text-[#eaf0de]/80 truncate lowercase">{user.displayName}</div>
+              <div className="text-[10px] text-[#c8dea0]/40 lowercase">{user.role.replace("_", " ")}</div>
             </div>
           </div>
         )}
         <button
           onClick={() => setShowPasswordDialog(true)}
-          className="flex items-center gap-2 px-2.5 py-1.5 w-full rounded text-[13px] text-green-100/60 hover:text-green-100/90 hover:bg-green-800/20 transition-colors lowercase"
+          className="flex items-center gap-2 px-2.5 py-1.5 w-full rounded text-[13px] text-[#eaf0de]/60 hover:text-[#eaf0de]/90 hover:bg-[#4a7a18]/20 transition-colors lowercase"
           data-testid="button-change-password"
         >
           <KeyRound className="h-4 w-4" />
@@ -182,7 +181,7 @@ export function Sidebar({ darkMode, onToggleDarkMode }: SidebarProps) {
         </button>
         <button
           onClick={onToggleDarkMode}
-          className="flex items-center gap-2 px-2.5 py-1.5 w-full rounded text-[13px] text-green-100/60 hover:text-green-100/90 hover:bg-green-800/20 transition-colors lowercase"
+          className="flex items-center gap-2 px-2.5 py-1.5 w-full rounded text-[13px] text-[#eaf0de]/60 hover:text-[#eaf0de]/90 hover:bg-[#4a7a18]/20 transition-colors lowercase"
           data-testid="button-dark-mode"
         >
           {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -199,7 +198,7 @@ export function Sidebar({ darkMode, onToggleDarkMode }: SidebarProps) {
       </div>
 
       {/* Attribution */}
-      <div className="border-t border-green-900/40">
+      <div className="border-t border-[#4a7a18]/40">
         <PerplexityAttribution />
       </div>
 
