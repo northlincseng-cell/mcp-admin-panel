@@ -52,7 +52,7 @@ describe("auth", () => {
     cookie = "";
     const { status, json } = await api("POST", "/api/auth/login", {
       username: "admin",
-      password: "admin123",
+      password: "M4r1shk465!",
     });
     assert.equal(status, 200);
     assert.ok(json.user);
@@ -130,7 +130,7 @@ describe("pricing", () => {
   });
 
   it("gets base price", async () => {
-    const { status, json } = await api("GET", "/api/pricing/base-price");
+    const { status, json } = await api("GET", "/api/pricing/base");
     assert.equal(status, 200);
     assert.ok(typeof json === "object");
   });
