@@ -6,6 +6,7 @@ import { serveStatic } from "./static";
 import { createServer } from "http";
 
 const app = express();
+app.set("trust proxy", 1); // trust nginx reverse proxy for secure cookies
 const httpServer = createServer(app);
 
 declare module "http" {
