@@ -20,6 +20,26 @@ interface HistoryPoint {
   recordedAt: string;
 }
 
+function Sparkline({ marketId }: { marketId: number }) {
+  const { data: history = [] } = useQuery<HistoryPoint[]>({
+    queryKey: ["/api/markets", marketId, "history"],
+    queryFn: async () => { const r = await apiRequest("GET", `/api/markets/${marketId}/history`); return r.json(); },
+  });
+  if (history.length < 2) return null;
+  const prices = history.map(h => h.price);
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  const range = max - min || 1;
+  const w = 120, h = 32;
+  const points = prices.map((p, i) => `${(i / (prices.length - 1)) * w},${h - ((p - min) / range) * h}`).join(" ");
+  const trending = prices[prices.length - 1] >= prices[0];
+  return (
+    <svg width={w} height={h} className="mt-2">
+      <polyline fill="none" stroke={trending ? "#6ab023" : "#ef4444"} strokeWidth="1.5" points={points} />
+    </svg>
+  );
+}
+
 const fields: FieldDef[] = [
   { key: "name", label: "market name", required: true },
   { key: "price", label: "current price" },
@@ -166,6 +186,7 @@ export default function CarbonMarkets() {
                   {market.trendUp ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
                   {market.delta || "0%"}
                 </div>
+                <Sparkline marketId={market.id} />
               </CardContent>
             </Card>
           ))}
