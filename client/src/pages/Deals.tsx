@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StatusBadge } from "@/components/shared/StatusBadge";
@@ -36,10 +36,39 @@ function fmtPrice(n: number | null | undefined): string {
   return `£${n.toFixed(3)}`;
 }
 
+const PIPELINE_STAGES = [
+  { key: "prospect", label: "prospect" },
+  { key: "qualifying", label: "qualifying" },
+  { key: "proposal", label: "proposal" },
+  { key: "negotiation", label: "negotiation" },
+  { key: "active", label: "active" },
+  { key: "complete", label: "complete" },
+] as const;
+
+const STAGE_COLORS = [
+  "bg-emerald-500/10 border-emerald-500/20 text-emerald-600",
+  "bg-emerald-500/20 border-emerald-500/30 text-emerald-600",
+  "bg-emerald-500/30 border-emerald-500/40 text-emerald-700",
+  "bg-emerald-500/40 border-emerald-500/50 text-emerald-700",
+  "bg-emerald-500/60 border-emerald-500/70 text-emerald-900 dark:text-emerald-100",
+  "bg-emerald-500/80 border-emerald-500/90 text-white",
+];
+
+// Map legacy statuses to pipeline stages
+function toStage(status: string): string {
+  if (status === "pending") return "qualifying";
+  if (status === "inactive") return "prospect";
+  if (PIPELINE_STAGES.some((s) => s.key === status)) return status;
+  return status;
+}
+
+const ALL_STATUSES = ["prospect", "qualifying", "proposal", "negotiation", "active", "complete", "lost"];
+
 export default function Deals() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Deal | null>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});
+  const [stageFilter, setStageFilter] = useState<string | null>(null);
 
   const { data: deals = [], isLoading } = useQuery<Deal[]>({
     queryKey: ["/api/deals"],
@@ -111,7 +140,7 @@ export default function Deals() {
         volume: "",
         level: 1,
         score: 0,
-        status: "pending",
+        status: "prospect",
         type: "corporate",
         volumeTierId: "",
         discountType: "percentage",
@@ -139,6 +168,23 @@ export default function Deals() {
   };
 
   const flaggedCount = deals.filter((d) => d.cascadeFlagged).length;
+
+  // Pipeline stage counts
+  const stageCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    PIPELINE_STAGES.forEach((s) => (counts[s.key] = 0));
+    deals.forEach((d) => {
+      const stage = toStage(d.status);
+      if (counts[stage] !== undefined) counts[stage]++;
+    });
+    return counts;
+  }, [deals]);
+
+  // Filter deals
+  const filteredDeals = useMemo(() => {
+    if (!stageFilter) return deals;
+    return deals.filter((d) => toStage(d.status) === stageFilter);
+  }, [deals, stageFilter]);
 
   return (
     <div>
@@ -192,17 +238,44 @@ export default function Deals() {
         </div>
       </PageHeader>
 
+      {/* Pipeline stages */}
+      <div className="grid grid-cols-6 gap-2 mb-6">
+        {PIPELINE_STAGES.map((stage, i) => (
+          <button
+            key={stage.key}
+            onClick={() => setStageFilter(stageFilter === stage.key ? null : stage.key)}
+            className={`p-3 rounded-lg border text-center transition-all cursor-pointer ${STAGE_COLORS[i]} ${
+              stageFilter === stage.key ? "ring-2 ring-primary ring-offset-1" : ""
+            } ${stageFilter && stageFilter !== stage.key ? "opacity-40" : ""}`}
+            data-testid={`filter-stage-${stage.key}`}
+          >
+            <div className="text-lg font-bold">{stageCounts[stage.key] || 0}</div>
+            <div className="text-[11px] lowercase font-medium">{stage.label}</div>
+          </button>
+        ))}
+      </div>
+
+      {/* Filter indicator */}
+      {stageFilter && (
+        <div className="flex items-center gap-2 mb-4 text-xs text-muted-foreground lowercase">
+          filtering by: <Badge variant="secondary" className="lowercase text-xs">{stageFilter}</Badge>
+          <button onClick={() => setStageFilter(null)} className="text-primary hover:underline lowercase">clear</button>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="grid grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="h-48" />
           ))}
         </div>
-      ) : deals.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-12 lowercase">no deals configured</p>
+      ) : filteredDeals.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-12 lowercase">
+          {stageFilter ? `no deals in ${stageFilter} stage` : "no deals configured"}
+        </p>
       ) : (
         <div className="grid grid-cols-3 gap-4">
-          {deals.map((deal) => {
+          {filteredDeals.map((deal) => {
             const linkedTier = tiers.find((t) => t.id === deal.volumeTierId);
             return (
               <Card
@@ -334,12 +407,12 @@ export default function Deals() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs lowercase">status</Label>
-                <Select value={formData.status ?? "pending"} onValueChange={(val) => setFormData({ ...formData, status: val })}>
+                <Select value={formData.status ?? "prospect"} onValueChange={(val) => setFormData({ ...formData, status: val })}>
                   <SelectTrigger className="h-9 text-sm" data-testid="select-status"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active">active</SelectItem>
-                    <SelectItem value="pending">pending</SelectItem>
-                    <SelectItem value="inactive">inactive</SelectItem>
+                    {ALL_STATUSES.map((s) => (
+                      <SelectItem key={s} value={s}>{s}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { StatCard } from "@/components/shared/StatCard";
 import { CrudDialog, type FieldDef } from "@/components/shared/CrudDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { TrendingUp, TrendingDown, Plus, Pencil, Trash2 } from "lucide-react";
+import { TrendingUp, TrendingDown, Plus, Pencil, Trash2, RefreshCw, BarChart3, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import type { CarbonMarket } from "@shared/schema";
 
 const fields: FieldDef[] = [
@@ -57,13 +58,49 @@ export default function CarbonMarkets() {
     },
   });
 
+  const refreshMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/markets/refresh"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/markets"] });
+    },
+  });
+
+  const trendingUp = markets.filter((m) => m.trendUp).length;
+  const trendingDown = markets.filter((m) => !m.trendUp).length;
+
   return (
     <div>
       <PageHeader title="carbon markets" icon={TrendingUp} breadcrumb="data feeds">
+        <Button
+          variant="outline"
+          size="sm"
+          className="lowercase"
+          onClick={() => refreshMutation.mutate()}
+          disabled={refreshMutation.isPending}
+          data-testid="button-refresh-prices"
+        >
+          <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${refreshMutation.isPending ? "animate-spin" : ""}`} />
+          {refreshMutation.isPending ? "refreshing..." : "refresh prices"}
+        </Button>
         <Button size="sm" className="lowercase" onClick={() => { setEditing(null); setDialogOpen(true); }} data-testid="button-add-market">
           <Plus className="h-4 w-4 mr-1" /> add market
         </Button>
       </PageHeader>
+
+      {/* Summary stats */}
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <StatCard label="markets tracked" value={String(markets.length)} icon={BarChart3} subtitle="carbon credit markets" />
+        <StatCard label="trending up" value={String(trendingUp)} icon={ArrowUpRight} subtitle="positive momentum" />
+        <StatCard label="trending down" value={String(trendingDown)} icon={ArrowDownRight} subtitle="negative momentum" />
+      </div>
+
+      {/* Last updated */}
+      {markets.length > 0 && (
+        <div className="flex items-center gap-2 mb-4 text-xs text-muted-foreground lowercase">
+          <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+          last updated: {markets[0].updatedAt ? new Date(markets[0].updatedAt).toLocaleString() : "unknown"}
+        </div>
+      )}
 
       {isLoading ? (
         <div className="grid grid-cols-3 gap-4">
