@@ -52,8 +52,9 @@ export function setupAuth(app: Express) {
     secret: process.env.SESSION_SECRET || "mcp-admin-session-secret-change-in-production",
     resave: false,
     saveUninitialized: false,
+    rolling: true, // reset expiry on each request (activity-based timeout)
     cookie: {
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      maxAge: 30 * 60 * 1000, // 30 minutes of inactivity = auto-logout
       httpOnly: true,
       secure: true,
       sameSite: "lax",
