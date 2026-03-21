@@ -25,7 +25,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { FileText, Plus, Pencil, Trash2, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { FileText, Plus, Pencil, Trash2, AlertTriangle, CheckCircle2, Download } from "lucide-react";
+import { exportToCsv } from "@/lib/export";
 import type { Deal, VolumeTier } from "@shared/schema";
 
 /** Format a numeric price to display string */
@@ -149,6 +150,42 @@ export default function Deals() {
               {flaggedCount} flagged
             </Badge>
           )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="lowercase"
+            data-testid="button-export-csv"
+            onClick={() =>
+              exportToCsv(
+                deals.map((d) => ({
+                  name: d.name,
+                  country: d.country,
+                  volume: d.volume,
+                  status: d.status,
+                  score: d.score,
+                  effectivePrice: d.effectivePrice,
+                  discountType: d.discountType,
+                  discountValue: d.discountValue,
+                  type: d.type,
+                })),
+                "deals",
+                [
+                  { key: "name", label: "name" },
+                  { key: "country", label: "country" },
+                  { key: "volume", label: "volume" },
+                  { key: "status", label: "status" },
+                  { key: "score", label: "score" },
+                  { key: "effectivePrice", label: "effective price" },
+                  { key: "discountType", label: "discount type" },
+                  { key: "discountValue", label: "discount value" },
+                  { key: "type", label: "type" },
+                ],
+              )
+            }
+          >
+            <Download className="h-3.5 w-3.5 mr-1.5" />
+            export csv
+          </Button>
           <Button size="sm" className="lowercase" onClick={() => openDialog()} data-testid="button-add-deal">
             <Plus className="h-4 w-4 mr-1" /> add deal
           </Button>

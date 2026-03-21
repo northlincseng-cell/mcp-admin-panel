@@ -2,7 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { History } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { History, Download } from "lucide-react";
+import { exportToCsv } from "@/lib/export";
 import type { ChangeLogEntry } from "@shared/schema";
 
 export default function ChangeLog() {
@@ -12,7 +14,36 @@ export default function ChangeLog() {
 
   return (
     <div>
-      <PageHeader title="change log" icon={History} breadcrumb="audit" />
+      <PageHeader title="change log" icon={History} breadcrumb="audit">
+        <Button
+          variant="outline"
+          size="sm"
+          className="lowercase"
+          data-testid="button-export-csv"
+          onClick={() =>
+            exportToCsv(
+              entries.map((e) => ({
+                action: e.action,
+                section: e.section,
+                detail: e.detail,
+                user: e.userName,
+                date: e.createdAt ? new Date(e.createdAt).toLocaleString() : "",
+              })),
+              "changelog",
+              [
+                { key: "action", label: "action" },
+                { key: "section", label: "section" },
+                { key: "detail", label: "detail" },
+                { key: "user", label: "user" },
+                { key: "date", label: "date" },
+              ],
+            )
+          }
+        >
+          <Download className="h-3.5 w-3.5 mr-1.5" />
+          export csv
+        </Button>
+      </PageHeader>
 
       {isLoading ? (
         <div className="space-y-3">

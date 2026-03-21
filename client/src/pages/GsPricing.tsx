@@ -23,7 +23,9 @@ import {
   CheckCircle2,
   TrendingUp,
   Zap,
+  Download,
 } from "lucide-react";
+import { exportToCsv } from "@/lib/export";
 import type { GsPricing, VolumeTier, Deal } from "@shared/schema";
 
 /** Format a numeric price to display string */
@@ -119,6 +121,31 @@ export default function GsPricingPage() {
             {flaggedDeals.length} deal{flaggedDeals.length > 1 ? "s" : ""} flagged
           </Badge>
         )}
+        <Button
+          variant="outline"
+          size="sm"
+          className="lowercase"
+          data-testid="button-export-csv"
+          onClick={() => {
+            const rows = [...derivedTiers, ...(basePrice ? [basePrice] : [])].map((t) => ({
+              tierName: t.tierName,
+              pricePerGs: t.priceNumeric,
+              volumeRange: t.volumeRange ?? "",
+              discount: t.discountPct ?? "",
+              description: t.description ?? "",
+            }));
+            exportToCsv(rows, "gs-pricing", [
+              { key: "tierName", label: "tier name" },
+              { key: "pricePerGs", label: "price per gs" },
+              { key: "volumeRange", label: "volume range" },
+              { key: "discount", label: "discount" },
+              { key: "description", label: "description" },
+            ]);
+          }}
+        >
+          <Download className="h-3.5 w-3.5 mr-1.5" />
+          export csv
+        </Button>
       </PageHeader>
 
       {isLoading ? (
