@@ -29,11 +29,31 @@ import { FileText, Plus, Pencil, Trash2, AlertTriangle, CheckCircle2, Download }
 import { exportToCsv } from "@/lib/export";
 import type { Deal, VolumeTier } from "@shared/schema";
 
+const CURRENCIES = [
+  { code: "GBP", symbol: "£" },
+  { code: "EUR", symbol: "€" },
+  { code: "USD", symbol: "$" },
+  { code: "AUD", symbol: "A$" },
+  { code: "SGD", symbol: "S$" },
+  { code: "NZD", symbol: "NZ$" },
+  { code: "JPY", symbol: "¥" },
+  { code: "ZAR", symbol: "R" },
+  { code: "CAD", symbol: "C$" },
+  { code: "CHF", symbol: "CHF" },
+] as const;
+
+/** extract currency symbol from a price string like "£0.004" or "$3.99" */
+function extractCurrency(price: string | null | undefined): string {
+  if (!price) return "£";
+  const match = price.match(/^(£|€|\$|A\$|S\$|NZ\$|¥|R|C\$|CHF)/);
+  return match ? match[1] : "£";
+}
+
 /** Format a numeric price to display string */
-function fmtPrice(n: number | null | undefined): string {
+function fmtPrice(n: number | null | undefined, symbol = "£"): string {
   if (n === null || n === undefined || n === 0) return "—";
-  if (n < 0.01) return `£${n.toFixed(4)}`;
-  return `£${n.toFixed(3)}`;
+  if (n < 0.01) return `${symbol}${n.toFixed(4)}`;
+  return `${symbol}${n.toFixed(3)}`;
 }
 
 const PIPELINE_STAGES = [
@@ -116,6 +136,9 @@ export default function Deals() {
 
   const openDialog = (deal?: Deal) => {
     if (deal) {
+      // detect currency from existing price string
+      const sym = extractCurrency(deal.price);
+      const detected = CURRENCIES.find((c) => c.symbol === sym)?.code || "GBP";
       setEditing(deal);
       setFormData({
         name: deal.name || "",
@@ -126,6 +149,7 @@ export default function Deals() {
         score: deal.score ?? 0,
         status: deal.status || "pending",
         type: deal.type || "corporate",
+        currency: detected,
         volumeTierId: deal.volumeTierId ? String(deal.volumeTierId) : "",
         discountType: deal.discountType || "percentage",
         discountValue: deal.discountValue ?? 0,
@@ -142,6 +166,7 @@ export default function Deals() {
         score: 0,
         status: "prospect",
         type: "corporate",
+        currency: "GBP",
         volumeTierId: "",
         discountType: "percentage",
         discountValue: 0,
@@ -291,6 +316,9 @@ export default function Deals() {
                           <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0" />
                         )}
                         <h3 className="text-sm font-semibold lowercase">{deal.name}</h3>
+                        <Badge variant="outline" className="text-[10px] font-mono lowercase px-1.5 py-0">
+                          {extractCurrency(deal.price)}
+                        </Badge>
                       </div>
                       <p className="text-xs text-muted-foreground lowercase">
                         {deal.flag} {deal.country}
@@ -322,7 +350,7 @@ export default function Deals() {
                   <div className="bg-muted/50 rounded p-2.5 space-y-1.5">
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground lowercase">effective price</span>
-                      <span className="font-bold text-primary">{fmtPrice(deal.effectivePrice)}</span>
+                      <span className="font-bold text-primary">{fmtPrice(deal.effectivePrice, extractCurrency(deal.price))}</span>
                     </div>
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground lowercase">
@@ -330,7 +358,7 @@ export default function Deals() {
                       </span>
                       <span className="font-medium">
                         {deal.discountType === "fixed_override"
-                          ? fmtPrice(deal.discountValue)
+                          ? fmtPrice(deal.discountValue, extractCurrency(deal.price))
                           : `${deal.discountValue ?? 0}%`}
                       </span>
                     </div>
@@ -429,6 +457,18 @@ export default function Deals() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs lowercase">currency</Label>
+              <Select value={formData.currency ?? "GBP"} onValueChange={(val) => setFormData({ ...formData, currency: val })}>
+                <SelectTrigger className="h-9 text-sm" data-testid="select-currency"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {CURRENCIES.map((c) => (
+                    <SelectItem key={c.code} value={c.code}>{c.code} ({c.symbol})</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* ═══ PRICING SECTION ═══ */}

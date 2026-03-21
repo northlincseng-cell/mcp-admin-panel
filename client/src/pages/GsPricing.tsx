@@ -167,7 +167,7 @@ export default function GsPricingPage() {
                     <h2 className="text-sm font-bold lowercase">base rate — source of truth</h2>
                   </div>
                   <p className="text-xs text-muted-foreground lowercase">
-                    all volume tiers and deal prices derive from this single value. voluntary credits — not regulated.
+                    all volume tiers and deal prices derive from this single value. voluntary credits — not regulated. base price denominated in GBP (£).
                   </p>
                 </div>
                 <div className="text-right">

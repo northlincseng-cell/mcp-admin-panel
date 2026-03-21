@@ -7,8 +7,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import {
+  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+} from "recharts";
 import { TrendingUp, TrendingDown, Plus, Pencil, Trash2, RefreshCw, BarChart3, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import type { CarbonMarket } from "@shared/schema";
+
+interface HistoryPoint {
+  id: number;
+  marketId: number;
+  price: number;
+  recordedAt: string;
+}
 
 const fields: FieldDef[] = [
   { key: "name", label: "market name", required: true },
@@ -28,9 +38,20 @@ const fields: FieldDef[] = [
 export default function CarbonMarkets() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<CarbonMarket | null>(null);
+  const [selectedMarketId, setSelectedMarketId] = useState<number | null>(null);
 
   const { data: markets = [], isLoading } = useQuery<CarbonMarket[]>({
     queryKey: ["/api/markets"],
+  });
+
+  // auto-select first market when data loads
+  const activeMarketId = selectedMarketId ?? (markets.length > 0 ? markets[0].id : null);
+  const selectedMarket = markets.find((m) => m.id === activeMarketId);
+
+  const { data: history = [], isLoading: historyLoading } = useQuery<HistoryPoint[]>({
+    queryKey: ["/api/markets", activeMarketId, "history"],
+    queryFn: () => apiRequest("GET", `/api/markets/${activeMarketId}/history`),
+    enabled: !!activeMarketId,
   });
 
   const createMutation = useMutation({
@@ -62,11 +83,20 @@ export default function CarbonMarkets() {
     mutationFn: () => apiRequest("POST", "/api/markets/refresh"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/markets"] });
+      if (activeMarketId) {
+        queryClient.invalidateQueries({ queryKey: ["/api/markets", activeMarketId, "history"] });
+      }
     },
   });
 
   const trendingUp = markets.filter((m) => m.trendUp).length;
   const trendingDown = markets.filter((m) => !m.trendUp).length;
+
+  // format history for chart
+  const chartData = history.map((h) => ({
+    date: new Date(h.recordedAt).toLocaleDateString("en-GB", { month: "short", day: "numeric" }),
+    price: h.price,
+  }));
 
   return (
     <div>
@@ -87,14 +117,14 @@ export default function CarbonMarkets() {
         </Button>
       </PageHeader>
 
-      {/* Summary stats */}
+      {/* summary stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         <StatCard label="markets tracked" value={String(markets.length)} icon={BarChart3} subtitle="carbon credit markets" />
         <StatCard label="trending up" value={String(trendingUp)} icon={ArrowUpRight} subtitle="positive momentum" />
         <StatCard label="trending down" value={String(trendingDown)} icon={ArrowDownRight} subtitle="negative momentum" />
       </div>
 
-      {/* Last updated */}
+      {/* last updated */}
       {markets.length > 0 && (
         <div className="flex items-center gap-2 mb-4 text-xs text-muted-foreground lowercase">
           <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
@@ -109,13 +139,20 @@ export default function CarbonMarkets() {
       ) : markets.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-12 lowercase">no carbon markets configured</p>
       ) : (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-4 gap-3">
           {markets.map((market) => (
-            <Card key={market.id} className="border border-border" data-testid={`card-market-${market.id}`}>
+            <Card
+              key={market.id}
+              className={`border cursor-pointer transition-all ${
+                activeMarketId === market.id ? "border-primary ring-1 ring-primary" : "border-border hover:border-primary/30"
+              }`}
+              onClick={() => setSelectedMarketId(market.id)}
+              data-testid={`card-market-${market.id}`}
+            >
               <CardContent className="p-4">
                 <div className="flex items-start justify-between mb-3">
                   <h3 className="text-sm font-semibold lowercase">{market.name}</h3>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                     <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => { setEditing({ ...market, trendUp: market.trendUp } as any); setDialogOpen(true); }}>
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
@@ -132,6 +169,55 @@ export default function CarbonMarkets() {
               </CardContent>
             </Card>
           ))}
+        </div>
+      )}
+
+      {/* price history line chart */}
+      {activeMarketId && selectedMarket && (
+        <div className="mt-8">
+          <h2 className="text-sm font-semibold lowercase mb-4">
+            {selectedMarket.name} — 52 week price history
+          </h2>
+          <Card className="border border-border">
+            <CardContent className="p-4">
+              {historyLoading ? (
+                <Skeleton className="h-64 w-full" />
+              ) : chartData.length === 0 ? (
+                <div className="h-64 flex items-center justify-center text-sm text-muted-foreground lowercase">
+                  no history data — run seed or refresh prices to generate data
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={280}>
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fontSize: 11 }}
+                      interval={Math.max(0, Math.floor(chartData.length / 8) - 1)}
+                      className="text-muted-foreground"
+                    />
+                    <YAxis
+                      tick={{ fontSize: 11 }}
+                      className="text-muted-foreground"
+                      domain={["auto", "auto"]}
+                    />
+                    <Tooltip
+                      contentStyle={{ fontSize: 12, textTransform: "lowercase" }}
+                      formatter={(value: number) => [value.toFixed(2), "price"]}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="price"
+                      stroke="#6ab023"
+                      strokeWidth={2}
+                      dot={false}
+                      activeDot={{ r: 4, fill: "#6ab023" }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
         </div>
       )}
 

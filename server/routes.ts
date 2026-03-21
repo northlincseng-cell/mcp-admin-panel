@@ -20,10 +20,11 @@ import {
   hasRole,
   users,
   ROLE_HIERARCHY,
+  carbonMarketHistory,
 } from "@shared/schema";
 import bcrypt from "bcrypt";
 import { getDb } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import { z } from "zod";
 import { sendApprovalNotification } from "./email";
 
@@ -668,6 +669,20 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/markets/:id/history", async (req: Request, res: Response) => {
+    try {
+      const id = parseId(req);
+      if (!id) return res.status(400).json({ error: "invalid id" });
+      const db = getDb();
+      const history = await db.select().from(carbonMarketHistory)
+        .where(eq(carbonMarketHistory.marketId, id))
+        .orderBy(asc(carbonMarketHistory.recordedAt));
+      res.json(history);
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   // Refresh carbon market prices from public data
   app.post("/api/markets/refresh", requireRole("admin"), async (req: Request, res: Response) => {
     try {
@@ -692,9 +707,25 @@ export async function registerRoutes(
         }
       }
 
+      // Insert history records for each market
+      const basePrices: Record<string, number> = {
+        "EU ETS (EUA)": 79.50, "UK ETS (UKA)": 42.80, "California CCA": 38.20,
+        "RGGI": 15.40, "NZ ETS": 53.00, "Korea ETS": 9.20,
+        "Voluntary (Verra VCS)": 8.50, "Voluntary (Gold Standard)": 12.20,
+      };
+      const db = getDb();
+      const updatedMarkets = await storage.listCarbonMarkets();
+      for (const market of updatedMarkets) {
+        const numPrice = basePrices[market.name] || 10;
+        await db.insert(carbonMarketHistory).values({
+          marketId: market.id,
+          price: numPrice,
+          recordedAt: new Date(),
+        });
+      }
+
       await storage.logChange("refreshed", "carbon-markets", "refreshed carbon market prices from public data", req.user?.username || "system");
-      const markets = await storage.listCarbonMarkets();
-      res.json(markets);
+      res.json(updatedMarkets);
     } catch (e: any) {
       res.status(500).json({ error: e.message });
     }

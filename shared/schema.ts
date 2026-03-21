@@ -201,6 +201,15 @@ export const carbonMarkets = pgTable("carbon_markets", {
 });
 
 
+// Carbon market historical price data
+export const carbonMarketHistory = pgTable("carbon_market_history", {
+  id: serial("id").primaryKey(),
+  marketId: integer("market_id").notNull(),
+  price: real("price").notNull(),
+  recordedAt: timestamp("recorded_at").notNull(),
+});
+
+
 // ═══════════════════════════════════════════════════
 //  C2050 DATA STREAMS
 // ═══════════════════════════════════════════════════
@@ -329,6 +338,11 @@ export type ValueProtection = typeof valueProtection.$inferSelect;
 export const insertCarbonMarketSchema = createInsertSchema(carbonMarkets).omit({ id: true, updatedAt: true });
 export type InsertCarbonMarket = z.infer<typeof insertCarbonMarketSchema>;
 export type CarbonMarket = typeof carbonMarkets.$inferSelect;
+
+// Carbon Market History
+export const insertCarbonMarketHistorySchema = createInsertSchema(carbonMarketHistory).omit({ id: true });
+export type InsertCarbonMarketHistory = z.infer<typeof insertCarbonMarketHistorySchema>;
+export type CarbonMarketHistory = typeof carbonMarketHistory.$inferSelect;
 
 // C2050 Streams
 export const insertC2050StreamSchema = createInsertSchema(c2050Streams).omit({ id: true, updatedAt: true });
