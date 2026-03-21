@@ -20,23 +20,28 @@ interface HistoryPoint {
   recordedAt: string;
 }
 
-function Sparkline({ marketId }: { marketId: number }) {
+function MiniChart({ marketId }: { marketId: number }) {
   const { data: history = [] } = useQuery<HistoryPoint[]>({
     queryKey: ["/api/markets", marketId, "history"],
     queryFn: async () => { const r = await apiRequest("GET", `/api/markets/${marketId}/history`); return r.json(); },
   });
   if (history.length < 2) return null;
-  const prices = history.map(h => h.price);
-  const min = Math.min(...prices);
-  const max = Math.max(...prices);
-  const range = max - min || 1;
-  const w = 120, h = 32;
-  const points = prices.map((p, i) => `${(i / (prices.length - 1)) * w},${h - ((p - min) / range) * h}`).join(" ");
-  const trending = prices[prices.length - 1] >= prices[0];
+  const chartData = history.map(h => ({
+    date: new Date(h.recordedAt).toLocaleDateString("en-GB", { month: "short" }),
+    price: h.price,
+  }));
+  const trending = history[history.length - 1].price >= history[0].price;
   return (
-    <svg width={w} height={h} className="mt-2">
-      <polyline fill="none" stroke={trending ? "#6ab023" : "#ef4444"} strokeWidth="1.5" points={points} />
-    </svg>
+    <div className="mt-3 -mx-2">
+      <ResponsiveContainer width="100%" height={100}>
+        <LineChart data={chartData}>
+          <XAxis dataKey="date" tick={{ fontSize: 9 }} interval={Math.floor(chartData.length / 4)} tickLine={false} axisLine={false} />
+          <YAxis tick={{ fontSize: 9 }} tickLine={false} axisLine={false} width={35} domain={["auto", "auto"]} />
+          <Tooltip contentStyle={{ fontSize: 11, textTransform: "lowercase" }} formatter={(v: number) => [v.toFixed(2), "price"]} />
+          <Line type="monotone" dataKey="price" stroke={trending ? "#6ab023" : "#ef4444"} strokeWidth={1.5} dot={false} />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
 
@@ -159,7 +164,7 @@ export default function CarbonMarkets() {
       ) : markets.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-12 lowercase">no carbon markets configured</p>
       ) : (
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-3 gap-4">
           {markets.map((market) => (
             <Card
               key={market.id}
@@ -186,7 +191,7 @@ export default function CarbonMarkets() {
                   {market.trendUp ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
                   {market.delta || "0%"}
                 </div>
-                <Sparkline marketId={market.id} />
+                <MiniChart marketId={market.id} />
               </CardContent>
             </Card>
           ))}
