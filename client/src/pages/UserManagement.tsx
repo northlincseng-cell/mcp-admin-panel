@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/select";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
-import { Users, UserPlus, Pencil, KeyRound, ShieldAlert } from "lucide-react";
+import { Users, UserPlus, Pencil, KeyRound, ShieldAlert, Trash2 } from "lucide-react";
 import type { User } from "@shared/schema";
 import { ROLE_HIERARCHY } from "@shared/schema";
 
@@ -98,6 +98,13 @@ export default function UserManagement() {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
       setResetUser(null);
       setResetPassword("");
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => apiRequest("DELETE", `/api/users/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
     },
   });
 
@@ -205,6 +212,9 @@ export default function UserManagement() {
                               </Button>
                               <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => setResetUser(u)}>
                                 <KeyRound className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-destructive" onClick={() => { if (confirm(`delete user ${u.username}?`)) deleteMutation.mutate(u.id); }}>
+                                <Trash2 className="h-3.5 w-3.5" />
                               </Button>
                             </div>
                           </td>

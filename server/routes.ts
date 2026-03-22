@@ -1093,5 +1093,21 @@ export async function registerRoutes(
     }
   });
 
+  app.delete("/api/users/:id", requireRole("super_admin"), async (req: Request, res: Response) => {
+    try {
+      const id = parseId(req);
+      if (!id) return res.status(400).json({ error: "invalid id" });
+      if (req.user!.id === id) return res.status(400).json({ error: "cannot delete your own account" });
+      const db = getDb();
+      const existing = await db.select().from(users).where(eq(users.id, id)).limit(1);
+      if (!existing.length) return res.status(404).json({ error: "user not found" });
+      await db.delete(users).where(eq(users.id, id));
+      await storage.logChange("deleted", "users", `deleted user: ${existing[0].username}`, req.user?.username || "system");
+      res.json({ success: true });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   return httpServer;
 }
